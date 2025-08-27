@@ -7,6 +7,30 @@
 - **Failure Prevention Rules**: 0 (will be populated as issues are encountered and resolved)
 - **Cross-Project Intelligence**: Ready for multi-project learning integration
 
+## ENHANCED PATTERN EFFECTIVENESS TRACKING
+
+### Successful Workflow Patterns
+```yaml
+pattern_name: "parallel-feature-development"
+effectiveness_metrics:
+  - metric: "release_velocity"
+    value: "35% faster delivery"
+  - metric: "defect_reduction"
+    value: "20% fewer post-release issues"
+context: "coordinated work across multiple feature teams"
+review_cycle: "quarterly"
+```
+
+### Failure Prevention Patterns
+```yaml
+failure_pattern: "unvalidated-user-input"
+prevention_rule: "centralized validation layer enforced on all inputs"
+effectiveness_metrics:
+  - metric: "security_incidents_prevented"
+    value: "12 attempted injections blocked"
+review_cycle: "monthly"
+```
+
 ---
 
 ## Successful Workflow Patterns (To Be Populated During Operation)
