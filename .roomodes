@@ -55,6 +55,7 @@ customModes:
     groups:
       - read
       - edit  # Only for coordination and state management files
+      - mcp
 
   # === ENHANCED SPECIFICATION WRITER ===
   - slug: sparc-specification-writer
@@ -319,6 +320,7 @@ customModes:
       - read
       - edit
       - browser
+      - mcp
 
   # === SYSTEM MANAGEMENT MODES ===
   - slug: quality-assurance-coordinator
@@ -378,6 +380,7 @@ customModes:
       - read
       - edit
       - browser
+      - mcp
   - slug: technical-debt-manager
     name: 📊 Technical Debt Manager
     whenToUse: Technical debt tracking, prioritization, proactive maintenance planning
@@ -490,6 +493,8 @@ customModes:
     groups:
       - read
       - edit
+      - command
+      - mcp
   # === ENHANCED TESTING MODES ===
   - slug: sparc-tdd-engineer
     name: 🧪 Autonomous TDD Engineer
