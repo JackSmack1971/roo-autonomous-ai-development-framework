@@ -8,10 +8,11 @@ sys.path.append(str(Path(__file__).resolve().parent.parent / "scripts"))
 from audit_autonomous_actions import ActionsAuditor, AuditError
 
 
-def test_run_audit_missing_workflow(tmp_path, monkeypatch) -> None:
+@pytest.mark.asyncio
+async def test_run_audit_missing_workflow(tmp_path, monkeypatch) -> None:
     (tmp_path / "project" / "demo" / "control").mkdir(parents=True)
     monkeypatch.chdir(tmp_path)
     auditor = ActionsAuditor("demo")
     with pytest.raises(AuditError):
-        auditor.run_audit()
+        await auditor.run_audit()
 

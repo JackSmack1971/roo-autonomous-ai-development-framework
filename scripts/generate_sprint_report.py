@@ -28,6 +28,9 @@ import yaml
 import argparse
 import asyncio
 from datetime import datetime
+from typing import Any, Dict
+
+import aiofiles
 
 from path_utils import InvalidProjectPathError, resolve_project_path
 
@@ -52,58 +55,64 @@ class Colors:
 class ReportGenerator:
     """Parses project files and generates a formatted sprint report."""
 
-    def __init__(self, project_name):
+    def __init__(self, project_name: str) -> None:
         self.project_name = project_name
         self.control_dir = os.path.join("project", project_name, "control")
         self.memory_dir = "memory-bank"
-        self.data = {}
+        self.data: Dict[str, Any] = {}
 
-    def generate_report(self):
+    async def generate_report(self) -> None:
         """Loads data, processes it, and prints the final report."""
-        self._load_data()
+        await self._load_data()
         self._print_report()
 
-    def _load_data(self):
+    async def _load_data(self) -> None:
         """Loads all necessary files into the data dictionary."""
         print(
             f"{Colors.OKCYAN}--- Loading data for project '{self.project_name}'... ---{Colors.ENDC}"
         )
         try:
-            with open(
+            async with aiofiles.open(
                 os.path.join(self.control_dir, "sprint.yaml"),
                 "r",
                 encoding="utf-8",
             ) as f:
-                self.data["sprint"] = yaml.safe_load(f)
-            with open(
+                sprint_content = await f.read()
+            self.data["sprint"] = yaml.safe_load(sprint_content)
+
+            async with aiofiles.open(
                 os.path.join(self.control_dir, "workflow-state.json"),
                 "r",
                 encoding="utf-8",
             ) as f:
-                self.data["workflow"] = json.load(f)
-            with open(
+                workflow_content = await f.read()
+            self.data["workflow"] = json.loads(workflow_content)
+
+            async with aiofiles.open(
                 os.path.join(self.control_dir, "quality-dashboard.json"),
                 "r",
                 encoding="utf-8",
             ) as f:
-                self.data["quality"] = json.load(f)
-            with open(
+                quality_content = await f.read()
+            self.data["quality"] = json.loads(quality_content)
+
+            async with aiofiles.open(
                 os.path.join(self.memory_dir, "decisionLog.md"),
                 "r",
                 encoding="utf-8",
             ) as f:
                 lines = [
                     line.strip()
-                    for line in f
+                    for line in await f.readlines()
                     if line.strip() and not line.startswith("#")
                 ]
-                self.data["decisions"] = lines[-5:]
+            self.data["decisions"] = lines[-5:]
         except FileNotFoundError as e:
             raise ReportGenerationError(f"Missing file: {e.filename}") from e
         except (yaml.YAMLError, json.JSONDecodeError) as e:
             raise ReportGenerationError(f"Failed to parse project data: {e}") from e
 
-    def _print_report(self):
+    def _print_report(self) -> None:
         """Formats and prints the loaded data to the console."""
         sprint_info = self.data['sprint']
         workflow = self.data['workflow']
@@ -182,7 +191,7 @@ async def main() -> None:
 
     reporter = ReportGenerator(project_name)
     try:
-        await asyncio.to_thread(reporter.generate_report)
+        await reporter.generate_report()
     except ReportGenerationError as e:
         print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
         sys.exit(1)
