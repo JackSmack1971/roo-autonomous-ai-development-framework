@@ -38,34 +38,7 @@ import copy
 import asyncio
 
 from path_utils import InvalidProjectPathError, resolve_project_path
-
-# --- ANSI Color Codes for Better Output ---
-class Colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\032[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-
-# --- Helper Functions ---
-
-def print_header(message):
-    """Prints a formatted header."""
-    print(f"\n{Colors.HEADER}{Colors.BOLD}================================================={Colors.ENDC}")
-    print(f"{Colors.HEADER}{Colors.BOLD}  {message}{Colors.ENDC}")
-    print(f"{Colors.HEADER}{Colors.BOLD}================================================={Colors.ENDC}")
-
-def print_status(message, success=True, details=""):
-    """Prints a status message with a checkmark or cross."""
-    if success:
-        print(f"  {Colors.OKGREEN}✅ {message}{Colors.ENDC}")
-    else:
-        print(f"  {Colors.FAIL}❌ {message}{Colors.ENDC}")
-    if details:
-        print(f"     {Colors.OKCYAN}{details}{Colors.ENDC}")
+from validate_config import Colors, print_header, print_status
 
 # --- Test Simulator Class ---
 
