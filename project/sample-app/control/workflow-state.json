@@ -1,5 +1,5 @@
 {
-  "schema": "WORKFLOW_STATE/V2",
+  "schema": "WORKFLOW_STATE/V2_ENHANCED",
   "project_id": "sample-app",
   "updated_at": "2025-08-25T00:00:00Z",
   "orchestrator_mode": "sparc-orchestrator",
@@ -23,13 +23,41 @@
       "status": "armed",
       "max_delegation_depth": 4,
       "current_max_depth": 0,
-      "cooldown_period": "15_minutes"
+      "cooldown_period": "15_minutes",
+      "predictive_intelligence": {
+        "pattern_tracking": {
+          "delegation_depth_patterns": [],
+          "chain_anomalies": []
+        },
+        "early_warning_triggers": {
+          "rapid_depth_increase": true,
+          "looping_delegations": true
+        },
+        "proactive_interventions": {
+          "auto_escalate": true,
+          "recommend_depth_reduction": true
+        }
+      }
     },
     "quality_regression_protection": {
       "status": "monitoring",
       "quality_threshold": 0.75,
       "current_quality_score": null,
-      "intervention_trigger": "three_consecutive_declines"
+      "intervention_trigger": "three_consecutive_declines",
+      "predictive_intelligence": {
+        "pattern_tracking": {
+          "quality_fluctuation_patterns": [],
+          "regression_signals": []
+        },
+        "early_warning_triggers": {
+          "sudden_quality_drop": true,
+          "threshold_warning": true
+        },
+        "proactive_responses": {
+          "initiate_quality_review": true,
+          "auto_rollback": true
+        }
+      }
     },
     "resource_contention_management": {
       "status": "normal",
