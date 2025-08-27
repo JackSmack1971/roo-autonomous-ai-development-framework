@@ -31,6 +31,10 @@ from datetime import datetime
 
 from path_utils import InvalidProjectPathError, resolve_project_path
 
+
+class ReportGenerationError(Exception):
+    """Raised when generating the sprint report fails."""
+
 # --- ANSI Color Codes for Better Output ---
 class Colors:
     HEADER = '\033[95m'
@@ -56,30 +60,48 @@ class ReportGenerator:
 
     def generate_report(self):
         """Loads data, processes it, and prints the final report."""
-        try:
-            self._load_data()
-            self._print_report()
-        except FileNotFoundError as e:
-            print(f"{Colors.FAIL}❌ Error: A required file was not found.{Colors.ENDC}")
-            print(f"{Colors.WARNING}Details: {e}{Colors.ENDC}")
-            sys.exit(1)
-        except Exception as e:
-            print(f"{Colors.FAIL}❌ An unexpected error occurred: {e}{Colors.ENDC}")
-            sys.exit(1)
+        self._load_data()
+        self._print_report()
 
     def _load_data(self):
         """Loads all necessary files into the data dictionary."""
-        print(f"{Colors.OKCYAN}--- Loading data for project '{self.project_name}'... ---{Colors.ENDC}")
-        with open(os.path.join(self.control_dir, "sprint.yaml"), 'r') as f:
-            self.data['sprint'] = yaml.safe_load(f)
-        with open(os.path.join(self.control_dir, "workflow-state.json"), 'r') as f:
-            self.data['workflow'] = json.load(f)
-        with open(os.path.join(self.control_dir, "quality-dashboard.json"), 'r') as f:
-            self.data['quality'] = json.load(f)
-        with open(os.path.join(self.memory_dir, "decisionLog.md"), 'r') as f:
-            # Get last 5 non-empty lines, excluding the header
-            lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-            self.data['decisions'] = lines[-5:]
+        print(
+            f"{Colors.OKCYAN}--- Loading data for project '{self.project_name}'... ---{Colors.ENDC}"
+        )
+        try:
+            with open(
+                os.path.join(self.control_dir, "sprint.yaml"),
+                "r",
+                encoding="utf-8",
+            ) as f:
+                self.data["sprint"] = yaml.safe_load(f)
+            with open(
+                os.path.join(self.control_dir, "workflow-state.json"),
+                "r",
+                encoding="utf-8",
+            ) as f:
+                self.data["workflow"] = json.load(f)
+            with open(
+                os.path.join(self.control_dir, "quality-dashboard.json"),
+                "r",
+                encoding="utf-8",
+            ) as f:
+                self.data["quality"] = json.load(f)
+            with open(
+                os.path.join(self.memory_dir, "decisionLog.md"),
+                "r",
+                encoding="utf-8",
+            ) as f:
+                lines = [
+                    line.strip()
+                    for line in f
+                    if line.strip() and not line.startswith("#")
+                ]
+                self.data["decisions"] = lines[-5:]
+        except FileNotFoundError as e:
+            raise ReportGenerationError(f"Missing file: {e.filename}") from e
+        except (yaml.YAMLError, json.JSONDecodeError) as e:
+            raise ReportGenerationError(f"Failed to parse project data: {e}") from e
 
     def _print_report(self):
         """Formats and prints the loaded data to the console."""
@@ -159,7 +181,11 @@ async def main() -> None:
         sys.exit(1)
 
     reporter = ReportGenerator(project_name)
-    await asyncio.to_thread(reporter.generate_report)
+    try:
+        await asyncio.to_thread(reporter.generate_report)
+    except ReportGenerationError as e:
+        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

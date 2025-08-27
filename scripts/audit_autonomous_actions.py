@@ -23,11 +23,18 @@
 #
 # ==============================================================================
 
+import asyncio
 import os
 import sys
 import json
 import argparse
 from collections import Counter
+
+from path_utils import InvalidProjectPathError, resolve_project_path
+
+
+class AuditError(Exception):
+    """Raised when an audit operation fails."""
 
 # --- ANSI Color Codes for Better Output ---
 class Colors:
@@ -40,6 +47,12 @@ class Colors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+def print_header(message: str) -> None:
+    print(f"\n{Colors.HEADER}{Colors.BOLD}{'=' * 45}{Colors.ENDC}")
+    print(f"{Colors.HEADER}{Colors.BOLD}  {message}{Colors.ENDC}")
+    print(f"{Colors.HEADER}{Colors.BOLD}{'=' * 45}{Colors.ENDC}")
 
 # --- Auditor Class ---
 
@@ -60,29 +73,29 @@ class ActionsAuditor:
         """Loads data, runs all checks, and prints the final report."""
         print_header(f"Auditing Autonomous Actions for '{self.project_name}'")
         try:
-            if not os.path.exists(self.workflow_file):
-                print(f"{Colors.FAIL}❌ Error: workflow-state.json not found.{Colors.ENDC}")
-                return
-
-            with open(self.workflow_file, 'r') as f:
+            with open(self.workflow_file, "r", encoding="utf-8") as f:
                 workflow_data = json.load(f)
-            
-            all_tasks = (workflow_data.get('pending_tasks', []) +
-                         workflow_data.get('active_tasks', []) +
-                         workflow_data.get('completed_tasks', []))
+        except FileNotFoundError as e:
+            raise AuditError("workflow-state.json not found") from e
+        except json.JSONDecodeError as e:
+            raise AuditError("workflow-state.json contains invalid JSON") from e
 
-            if not all_tasks:
-                print(f"{Colors.OKGREEN}No tasks found to audit. System is clean.{Colors.ENDC}")
-                return
+        all_tasks = (
+            workflow_data.get("pending_tasks", [])
+            + workflow_data.get("active_tasks", [])
+            + workflow_data.get("completed_tasks", [])
+        )
 
-            self._check_high_intervention_rate(all_tasks)
-            self._check_task_loops(all_tasks)
+        if not all_tasks:
+            print(
+                f"{Colors.OKGREEN}No tasks found to audit. System is clean.{Colors.ENDC}"
+            )
+            return
 
-            self._print_report()
+        self._check_high_intervention_rate(all_tasks)
+        self._check_task_loops(all_tasks)
 
-        except Exception as e:
-            print(f"{Colors.FAIL}❌ An unexpected error occurred during the audit: {e}{Colors.ENDC}")
-            sys.exit(1)
+        self._print_report()
 
     def _check_high_intervention_rate(self, all_tasks):
         """Checks for an excessive number of tasks created by oversight agents."""
@@ -158,7 +171,11 @@ async def main() -> None:
         sys.exit(1)
 
     auditor = ActionsAuditor(project_name)
-    await asyncio.to_thread(auditor.run_audit)
+    try:
+        await asyncio.to_thread(auditor.run_audit)
+    except AuditError as e:
+        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
