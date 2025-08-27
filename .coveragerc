@@ -1,0 +1,5 @@
+[run]
+omit =
+    scripts/audit_autonomous_actions.py
+    scripts/generate_sprint_report.py
+    scripts/validate_config.py
