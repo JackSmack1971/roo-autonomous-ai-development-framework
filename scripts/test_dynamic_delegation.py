@@ -34,6 +34,9 @@ import time
 import argparse
 import uuid
 import copy
+import asyncio
+
+from path_utils import InvalidProjectPathError, resolve_project_path
 
 # --- ANSI Color Codes for Better Output ---
 class Colors:
@@ -206,19 +209,25 @@ class DelegationTester:
 
 # --- Main Execution ---
 
-if __name__ == "__main__":
+async def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Test the dynamic delegation logic for a Roo project."
+        description="Test the dynamic delegation logic for a Roo project.",
     )
     parser.add_argument(
         "project_name",
         type=str,
-        help="The name of the project directory inside the 'project/' folder."
+        help="The name of the project directory inside the 'project/' folder.",
     )
     args = parser.parse_args()
 
-    tester = DelegationTester(args.project_name)
-    test_passed = tester.run_test()
+    try:
+        project_name = await resolve_project_path(args.project_name)
+    except InvalidProjectPathError as e:
+        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
+        sys.exit(1)
+
+    tester = DelegationTester(project_name)
+    test_passed = await asyncio.to_thread(tester.run_test)
 
     if test_passed:
         print_header("✅ Test Passed ✅")
@@ -228,3 +237,6 @@ if __name__ == "__main__":
         print_header("❌ Test Failed ❌")
         print(f"{Colors.FAIL}The dynamic delegation logic did not perform as expected.{Colors.ENDC}")
         sys.exit(1)
+
+if __name__ == "__main__":
+    asyncio.run(main())
