@@ -140,16 +140,26 @@ class ActionsAuditor:
 
 # --- Main Execution ---
 
-if __name__ == "__main__":
+async def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Audit the autonomous actions for a Roo project to find anomalies."
+        description="Audit the autonomous actions for a Roo project to find anomalies.",
     )
     parser.add_argument(
         "project_name",
         type=str,
-        help="The name of the project directory inside the 'project/' folder."
+        help="The name of the project directory inside the 'project/' folder.",
     )
     args = parser.parse_args()
 
-    auditor = ActionsAuditor(args.project_name)
-    auditor.run_audit()
+    try:
+        project_name = await resolve_project_path(args.project_name)
+    except InvalidProjectPathError as e:
+        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
+        sys.exit(1)
+
+    auditor = ActionsAuditor(project_name)
+    await asyncio.to_thread(auditor.run_audit)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

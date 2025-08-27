@@ -26,7 +26,10 @@ import sys
 import json
 import yaml
 import argparse
+import asyncio
 from datetime import datetime
+
+from path_utils import InvalidProjectPathError, resolve_project_path
 
 # --- ANSI Color Codes for Better Output ---
 class Colors:
@@ -138,16 +141,26 @@ class ReportGenerator:
 
 # --- Main Execution ---
 
-if __name__ == "__main__":
+async def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate a sprint progress report for a Roo project."
+        description="Generate a sprint progress report for a Roo project.",
     )
     parser.add_argument(
         "project_name",
         type=str,
-        help="The name of the project directory inside the 'project/' folder."
+        help="The name of the project directory inside the 'project/' folder.",
     )
     args = parser.parse_args()
 
-    reporter = ReportGenerator(args.project_name)
-    reporter.generate_report()
+    try:
+        project_name = await resolve_project_path(args.project_name)
+    except InvalidProjectPathError as e:
+        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
+        sys.exit(1)
+
+    reporter = ReportGenerator(project_name)
+    await asyncio.to_thread(reporter.generate_report)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
