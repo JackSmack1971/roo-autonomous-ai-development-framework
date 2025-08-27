@@ -32,6 +32,10 @@ from jsonschema import validate, ValidationError
 
 from path_utils import InvalidProjectPathError, resolve_project_path
 
+
+class ConfigValidationError(Exception):
+    """Raised when configuration validation encounters a file or parsing error."""
+
 # --- ANSI Color Codes for Better Output ---
 class Colors:
     HEADER = '\033[95m'
@@ -128,18 +132,16 @@ class ConfigValidator:
         print(f"\n{Colors.OKCYAN}--- 2. Validating .roomodes File ---{Colors.ENDC}")
         path = ".roomodes"
         try:
-            with open(path, 'r') as f:
+            with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
-                if not content.strip():
-                    self.errors += 1
-                    print_status("Checking .roomodes content", success=False)
-                    print_error("File is empty.")
-                else:
-                    print_status("Checking .roomodes content", success=True)
-        except Exception as e:
+        except OSError as e:
+            raise ConfigValidationError(f"Could not read {path}") from e
+        if not content.strip():
             self.errors += 1
-            print_status(f"Reading {path}", success=False)
-            print_error(f"Could not read file.", details=e)
+            print_status("Checking .roomodes content", success=False)
+            print_error("File is empty.")
+        else:
+            print_status("Checking .roomodes content", success=True)
 
     def _validate_yaml_files(self):
         """Parses and validates the structure of YAML files."""
@@ -147,36 +149,36 @@ class ConfigValidator:
         # --- capabilities.yaml ---
         path = os.path.join(self.control_dir, "capabilities.yaml")
         try:
-            with open(path, 'r') as f:
+            with open(path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
-                if "agents" in data and isinstance(data["agents"], list) and data["agents"]:
-                    print_status("Validating capabilities.yaml structure", success=True)
-                else:
-                    self.errors += 1
-                    print_status("Validating capabilities.yaml structure", success=False)
-                    print_error("Must contain a non-empty list under the 'agents' key.")
+        except FileNotFoundError as e:
+            raise ConfigValidationError(f"Missing file: {path}") from e
         except yaml.YAMLError as e:
+            raise ConfigValidationError(f"YAML syntax error in {path}: {e}") from e
+        if "agents" in data and isinstance(data["agents"], list) and data["agents"]:
+            print_status("Validating capabilities.yaml structure", success=True)
+        else:
             self.errors += 1
-            print_status(f"Parsing {path}", success=False)
-            print_error("YAML syntax error.", details=e)
+            print_status("Validating capabilities.yaml structure", success=False)
+            print_error("Must contain a non-empty list under the 'agents' key.")
 
         # --- sprint.yaml ---
         path = os.path.join(self.control_dir, "sprint.yaml")
         try:
-            with open(path, 'r') as f:
+            with open(path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
-                required_keys = ["sprint_id", "goal", "status"]
-                missing_keys = [key for key in required_keys if key not in data]
-                if not missing_keys:
-                    print_status("Validating sprint.yaml structure", success=True)
-                else:
-                    self.errors += 1
-                    print_status("Validating sprint.yaml structure", success=False)
-                    print_error(f"Missing required keys: {', '.join(missing_keys)}")
+        except FileNotFoundError as e:
+            raise ConfigValidationError(f"Missing file: {path}") from e
         except yaml.YAMLError as e:
+            raise ConfigValidationError(f"YAML syntax error in {path}: {e}") from e
+        required_keys = ["sprint_id", "goal", "status"]
+        missing_keys = [key for key in required_keys if key not in data]
+        if not missing_keys:
+            print_status("Validating sprint.yaml structure", success=True)
+        else:
             self.errors += 1
-            print_status(f"Parsing {path}", success=False)
-            print_error("YAML syntax error.", details=e)
+            print_status("Validating sprint.yaml structure", success=False)
+            print_error(f"Missing required keys: {', '.join(missing_keys)}")
 
     def _validate_json_files(self):
         """Validates JSON files against their defined schemas."""
@@ -190,55 +192,60 @@ class ConfigValidator:
         for data_file, schema_file in validation_map.items():
             data_path = os.path.join(self.control_dir, data_file)
             schema_path = os.path.join(self.schema_dir, schema_file)
-            
+
             try:
-                with open(data_path, 'r') as f:
+                with open(data_path, "r", encoding="utf-8") as f:
                     data_instance = json.load(f)
-                with open(schema_path, 'r') as f:
+                with open(schema_path, "r", encoding="utf-8") as f:
                     schema = json.load(f)
-                
-                validate(instance=data_instance, schema=schema)
-                print_status(f"Validating {data_file} against {schema_file}", success=True)
-            
+            except FileNotFoundError as e:
+                raise ConfigValidationError(f"Missing file: {e.filename}") from e
             except json.JSONDecodeError as e:
-                self.errors += 1
-                print_status(f"Parsing {data_file}", success=False)
-                print_error("JSON syntax error.", details=e)
+                raise ConfigValidationError(f"JSON syntax error in {data_file}: {e}") from e
+
+            try:
+                validate(instance=data_instance, schema=schema)
+                print_status(
+                    f"Validating {data_file} against {schema_file}", success=True
+                )
             except ValidationError as e:
                 self.errors += 1
-                print_status(f"Validating {data_file} against {schema_file}", success=False)
+                print_status(
+                    f"Validating {data_file} against {schema_file}", success=False
+                )
                 print_error("Schema validation failed.", details=e.message)
-            except Exception as e:
-                self.errors += 1
-                print_status(f"Processing {data_file}", success=False)
-                print_error("An unexpected error occurred.", details=e)
 
     def _cross_reference_capabilities(self):
         """Ensures agents in capabilities.yaml are defined in .roomodes."""
         print(f"\n{Colors.OKCYAN}--- 5. Cross-Referencing Agent Capabilities ---{Colors.ENDC}")
         try:
-            with open(".roomodes", 'r') as f:
+            with open(".roomodes", "r", encoding="utf-8") as f:
                 defined_modes = {line.strip() for line in f if line.strip()}
-            
-            cap_path = os.path.join(self.control_dir, "capabilities.yaml")
-            with open(cap_path, 'r') as f:
-                project_caps = yaml.safe_load(f)
-            
-            project_agents = set(project_caps.get("agents", []))
-            
-            undefined_agents = project_agents - defined_modes
-            
-            if not undefined_agents:
-                print_status("All project agents are defined in .roomodes", success=True)
-            else:
-                self.errors += 1
-                print_status("All project agents are defined in .roomodes", success=False)
-                print_error(f"The following agents in capabilities.yaml are not defined in .roomodes: {', '.join(undefined_agents)}")
 
-        except Exception as e:
+            cap_path = os.path.join(self.control_dir, "capabilities.yaml")
+            with open(cap_path, "r", encoding="utf-8") as f:
+                project_caps = yaml.safe_load(f)
+        except FileNotFoundError as e:
+            raise ConfigValidationError(f"Missing file: {e.filename}") from e
+        except yaml.YAMLError as e:
+            raise ConfigValidationError(
+                f"YAML parsing error in {cap_path}: {e}"
+            ) from e
+        except OSError as e:
+            raise ConfigValidationError(f"Could not read file: {e.filename}") from e
+
+        project_agents = set(project_caps.get("agents", []))
+        undefined_agents = project_agents - defined_modes
+
+        if not undefined_agents:
+            print_status("All project agents are defined in .roomodes", success=True)
+        else:
             self.errors += 1
-            print_status("Cross-referencing capabilities", success=False)
-            print_error("Could not perform cross-reference check.", details=e)
+            print_status("All project agents are defined in .roomodes", success=False)
+            print_error(
+                "The following agents in capabilities.yaml are not defined in .roomodes: "
+                + ", ".join(undefined_agents)
+            )
 
 
 # --- Main Execution ---
@@ -261,7 +268,11 @@ async def main() -> None:
         sys.exit(1)
 
     validator = ConfigValidator(project_name)
-    is_valid = await asyncio.to_thread(validator.run_validations)
+    try:
+        is_valid = await asyncio.to_thread(validator.run_validations)
+    except ConfigValidationError as e:
+        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
+        sys.exit(1)
 
     if is_valid:
         print_header("✅ Validation Successful ✅")
