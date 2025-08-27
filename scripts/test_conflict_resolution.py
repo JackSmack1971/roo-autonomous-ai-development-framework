@@ -29,15 +29,14 @@
 # ==============================================================================
 
 import os
-import sys
 import json
 import time
-import argparse
 import uuid
 import copy
 import asyncio
 
-from path_utils import InvalidProjectPathError, resolve_project_path
+import pytest
+
 from validate_config import Colors, print_header, print_status
 
 # --- Test Simulator Class ---
@@ -195,36 +194,16 @@ class ConflictTester:
                 json.dump(self.original_workflow_state, f, indent=2)
             print_status("Restored original workflow-state.json", success=True)
 
-# --- Main Execution ---
-
-async def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Test the conflict resolution logic for a Roo project.",
-    )
-    parser.add_argument(
-        "project_name",
-        type=str,
-        help="The name of the project directory inside the 'project/' folder.",
-    )
-    args = parser.parse_args()
-
-    try:
-        project_name = await resolve_project_path(args.project_name)
-    except InvalidProjectPathError as e:
-        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
-        sys.exit(1)
-
-    tester = ConflictTester(project_name)
-    test_passed = await asyncio.to_thread(tester.run_test)
-
-    if test_passed:
-        print_header("✅ Test Passed ✅")
-        print(f"{Colors.OKGREEN}The sparc-orchestrator correctly identified the conflict and initiated resolution.{Colors.ENDC}")
-        sys.exit(0)
-    else:
-        print_header("❌ Test Failed ❌")
-        print(f"{Colors.FAIL}The conflict resolution logic did not perform as expected.{Colors.ENDC}")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+@pytest.mark.asyncio
+async def test_conflict_resolution(tmp_path, monkeypatch):
+    """Validate conflict resolution creates a mediator task."""
+    monkeypatch.chdir(tmp_path)
+    control_dir = tmp_path / "project" / "demo" / "control"
+    control_dir.mkdir(parents=True)
+    conflict_seed = {"description": "conflict"}
+    data = {"pending_tasks": [], "completed_tasks": [], "issue_log": [conflict_seed]}
+    (control_dir / "workflow-state.json").write_text(json.dumps(data))
+    tester = ConflictTester("demo")
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    result = await asyncio.to_thread(tester.run_test)
+    assert result is True

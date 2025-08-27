@@ -28,15 +28,14 @@
 # ==============================================================================
 
 import os
-import sys
 import json
 import time
-import argparse
 import uuid
 import copy
 import asyncio
 
-from path_utils import InvalidProjectPathError, resolve_project_path
+import pytest
+
 from validate_config import Colors, print_header, print_status
 
 # --- Test Simulator Class ---
@@ -180,36 +179,15 @@ class DelegationTester:
         else:
             print_status("No backup found, skipping restore.", success=False)
 
-# --- Main Execution ---
-
-async def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Test the dynamic delegation logic for a Roo project.",
-    )
-    parser.add_argument(
-        "project_name",
-        type=str,
-        help="The name of the project directory inside the 'project/' folder.",
-    )
-    args = parser.parse_args()
-
-    try:
-        project_name = await resolve_project_path(args.project_name)
-    except InvalidProjectPathError as e:
-        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
-        sys.exit(1)
-
-    tester = DelegationTester(project_name)
-    test_passed = await asyncio.to_thread(tester.run_test)
-
-    if test_passed:
-        print_header("✅ Test Passed ✅")
-        print(f"{Colors.OKGREEN}The system correctly delegated tasks based on context.{Colors.ENDC}")
-        sys.exit(0)
-    else:
-        print_header("❌ Test Failed ❌")
-        print(f"{Colors.FAIL}The dynamic delegation logic did not perform as expected.{Colors.ENDC}")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+@pytest.mark.asyncio
+async def test_dynamic_delegation(tmp_path, monkeypatch):
+    """Ensure a delegated task is created for security review."""
+    monkeypatch.chdir(tmp_path)
+    control_dir = tmp_path / "project" / "demo" / "control"
+    control_dir.mkdir(parents=True)
+    data = {"pending_tasks": [], "active_tasks": []}
+    (control_dir / "workflow-state.json").write_text(json.dumps(data))
+    tester = DelegationTester("demo")
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    result = await asyncio.to_thread(tester.run_test)
+    assert result is True

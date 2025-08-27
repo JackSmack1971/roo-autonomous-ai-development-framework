@@ -28,15 +28,14 @@
 # ==============================================================================
 
 import os
-import sys
 import json
 import time
-import argparse
 import uuid
 import copy
 import asyncio
 
-from path_utils import InvalidProjectPathError, resolve_project_path
+import pytest
+
 from validate_config import Colors, print_header, print_status
 
 # --- Test Simulator Class ---
@@ -166,36 +165,20 @@ class QualityInterventionTester:
                 json.dump(self.original_workflow_state, f, indent=2)
             print_status("Restored original workflow-state.json", success=True)
 
-# --- Main Execution ---
-
-async def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Test the quality intervention logic for a Roo project.",
-    )
-    parser.add_argument(
-        "project_name",
-        type=str,
-        help="The name of the project directory inside the 'project/' folder.",
-    )
-    args = parser.parse_args()
-
-    try:
-        project_name = await resolve_project_path(args.project_name)
-    except InvalidProjectPathError as e:
-        print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
-        sys.exit(1)
-
-    tester = QualityInterventionTester(project_name)
-    test_passed = await asyncio.to_thread(tester.run_test)
-
-    if test_passed:
-        print_header("✅ Test Passed ✅")
-        print(f"{Colors.OKGREEN}The Quality Assurance Coordinator correctly intervened on a quality regression.{Colors.ENDC}")
-        sys.exit(0)
-    else:
-        print_header("❌ Test Failed ❌")
-        print(f"{Colors.FAIL}The quality intervention logic did not perform as expected.{Colors.ENDC}")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+@pytest.mark.asyncio
+async def test_quality_intervention(tmp_path, monkeypatch):
+    """Confirm QA coordinator creates remediation task on regression."""
+    monkeypatch.chdir(tmp_path)
+    control_dir = tmp_path / "project" / "demo" / "control"
+    control_dir.mkdir(parents=True)
+    quality_state = {
+        "metrics": {"code_coverage": 0.9, "other": 0.9},
+        "overall_quality_score": 0.9,
+        "quality_trend": "stable",
+    }
+    (control_dir / "quality-dashboard.json").write_text(json.dumps(quality_state))
+    (control_dir / "workflow-state.json").write_text(json.dumps({"pending_tasks": []}))
+    tester = QualityInterventionTester("demo")
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    result = await asyncio.to_thread(tester.run_test)
+    assert result is True
