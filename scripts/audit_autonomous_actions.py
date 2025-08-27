@@ -29,6 +29,9 @@ import sys
 import json
 import argparse
 from collections import Counter
+from typing import Any, Dict, List
+
+import aiofiles
 
 from path_utils import InvalidProjectPathError, resolve_project_path
 
@@ -59,22 +62,28 @@ def print_header(message: str) -> None:
 class ActionsAuditor:
     """Scans project logs for anomalies and generates a report."""
 
-    def __init__(self, project_name, intervention_threshold=3, loop_threshold=2):
+    def __init__(
+        self,
+        project_name: str,
+        intervention_threshold: int = 3,
+        loop_threshold: int = 2,
+    ) -> None:
         self.project_name = project_name
         self.control_dir = os.path.join("project", project_name, "control")
         self.workflow_file = os.path.join(self.control_dir, "workflow-state.json")
-        self.anomalies = []
-        
-        # --- Thresholds for anomaly detection ---
-        self.INTERVENTION_THRESHOLD = intervention_threshold # Max tasks from one oversight agent
-        self.LOOP_THRESHOLD = loop_threshold # Max times a similar task can be created
+        self.anomalies: List[Dict[str, Any]] = []
 
-    def run_audit(self):
+        # --- Thresholds for anomaly detection ---
+        self.INTERVENTION_THRESHOLD = intervention_threshold  # Max tasks from one oversight agent
+        self.LOOP_THRESHOLD = loop_threshold  # Max times a similar task can be created
+
+    async def run_audit(self) -> None:
         """Loads data, runs all checks, and prints the final report."""
         print_header(f"Auditing Autonomous Actions for '{self.project_name}'")
         try:
-            with open(self.workflow_file, "r", encoding="utf-8") as f:
-                workflow_data = json.load(f)
+            async with aiofiles.open(self.workflow_file, "r", encoding="utf-8") as f:
+                content = await f.read()
+            workflow_data = json.loads(content)
         except FileNotFoundError as e:
             raise AuditError("workflow-state.json not found") from e
         except json.JSONDecodeError as e:
@@ -97,26 +106,34 @@ class ActionsAuditor:
 
         self._print_report()
 
-    def _check_high_intervention_rate(self, all_tasks):
+    def _check_high_intervention_rate(self, all_tasks: List[Dict[str, Any]]) -> None:
         """Checks for an excessive number of tasks created by oversight agents."""
         oversight_agents = ["quality-assurance-coordinator", "technical-debt-manager"]
         intervention_tasks = [
-            task for task in all_tasks 
-            if task.get('assigned_to') in oversight_agents or 
+            task for task in all_tasks
+            if task.get('assigned_to') in oversight_agents or
                "Remediation:" in task.get('title', '')
         ]
-        
+
         creator_counts = Counter(task.get('assigned_to') for task in intervention_tasks)
-        
+
         for agent, count in creator_counts.items():
             if count > self.INTERVENTION_THRESHOLD:
-                self.anomalies.append({
-                    "type": "High Intervention Rate",
-                    "details": f"Agent '{agent}' has created {count} intervention tasks, exceeding the threshold of {self.INTERVENTION_THRESHOLD}.",
-                    "recommendation": "Review this agent's tasks to identify a potential root cause for repeated quality/debt issues."
-                })
+                self.anomalies.append(
+                    {
+                        "type": "High Intervention Rate",
+                        "details": (
+                            f"Agent '{agent}' has created {count} intervention tasks, "
+                            f"exceeding the threshold of {self.INTERVENTION_THRESHOLD}."
+                        ),
+                        "recommendation": (
+                            "Review this agent's tasks to identify a potential root cause "
+                            "for repeated quality/debt issues."
+                        ),
+                    }
+                )
 
-    def _check_task_loops(self, all_tasks):
+    def _check_task_loops(self, all_tasks: List[Dict[str, Any]]) -> None:
         """Checks for tasks with similar titles being created multiple times."""
         # Normalize titles to catch simple loops (e.g., ignoring UUIDs)
         normalized_titles = []
@@ -136,7 +153,7 @@ class ActionsAuditor:
                     "recommendation": "Investigate why this task is being repeatedly created. It may indicate a persistent failure or a logical loop in the workflow."
                 })
 
-    def _print_report(self):
+    def _print_report(self) -> None:
         """Formats and prints the audit findings."""
         print(f"\n{Colors.OKBLUE}{Colors.UNDERLINE}Audit Summary:{Colors.ENDC}")
         if not self.anomalies:
@@ -172,7 +189,7 @@ async def main() -> None:
 
     auditor = ActionsAuditor(project_name)
     try:
-        await asyncio.to_thread(auditor.run_audit)
+        await auditor.run_audit()
     except AuditError as e:
         print(f"{Colors.FAIL}❌ {e}{Colors.ENDC}")
         sys.exit(1)
