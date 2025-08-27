@@ -50,18 +50,20 @@ class Colors:
 
 # --- Helper Functions ---
 
-def print_header(message):
+def print_header(message: str) -> None:
     """Prints a formatted header."""
     print(f"\n{Colors.HEADER}{Colors.BOLD}================================================={Colors.ENDC}")
     print(f"{Colors.HEADER}{Colors.BOLD}  {message}{Colors.ENDC}")
     print(f"{Colors.HEADER}{Colors.BOLD}================================================={Colors.ENDC}")
 
-def print_status(message, success=True):
+def print_status(message: str, success: bool = True, details: str = "") -> None:
     """Prints a status message with a checkmark or cross."""
     if success:
         print(f"  {Colors.OKGREEN}✅ {message}{Colors.ENDC}")
     else:
         print(f"  {Colors.FAIL}❌ {message}{Colors.ENDC}")
+    if details:
+        print(f"     {Colors.OKCYAN}{details}{Colors.ENDC}")
 
 def print_error(message, details=""):
     """Prints a formatted error message."""
