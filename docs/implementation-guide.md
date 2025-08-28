@@ -238,6 +238,57 @@ Enable verbose logging for troubleshooting:
 4. **Monitor and Optimize** based on success metrics
 5. **Scale Across Projects** applying learned patterns
 
+## 🔧 Intelligent Troubleshooting Guide
+
+### Automated Diagnostics
+
+Before manual troubleshooting, run the automated diagnostic:
+
+```bash
+# Add this function to project/scripts/validate.sh or create new diagnostic script
+run_autonomous_operation_diagnostic() {
+    echo "🔍 Running Autonomous Operation Diagnostic..."
+
+    # Check circuit breaker states (updated paths)
+    echo "Circuit Breaker Status:"
+    jq '.circuit_breaker_states' project/*/control/workflow-state.json
+
+    # Analyze delegation patterns (updated paths)
+    echo "Recent Delegation Analysis:"
+    jq '.delegation_chains[-5:]' project/*/control/workflow-state.json
+
+    # Quality trend analysis (updated paths)
+    echo "Quality Trend:"
+    jq '.quality_oversight.quality_trend' project/*/control/workflow-state.json
+
+    # Learning system status (updated paths)
+    echo "Learning System Status:"
+    jq '.learning_state' project/*/control/workflow-state.json
+}
+```
+
+#### Quick Recovery Commands (Updated Paths)
+```bash
+# Reset circuit breakers if stuck
+reset_circuit_breakers() {
+    jq '.circuit_breaker_states.infinite_delegation_prevention.status = "armed"' \
+       project/*/control/workflow-state.json > temp.json && mv temp.json project/*/control/workflow-state.json
+
+    jq '.circuit_breaker_states.quality_regression_protection.status = "monitoring"' \
+       project/*/control/workflow-state.json > temp.json && mv temp.json project/*/control/workflow-state.json
+
+    echo "✅ Circuit breakers reset to operational state"
+}
+
+# Clear problematic delegation chains
+clear_delegation_chains() {
+    jq '.delegation_chains = []' project/*/control/workflow-state.json > temp.json && mv temp.json project/*/control/workflow-state.json
+    jq '.active_tasks = []' project/*/control/workflow-state.json > temp.json && mv temp.json project/*/control/workflow-state.json
+
+    echo "✅ Delegation chains cleared - ready for fresh start"
+}
+```
+
 ## Support and Community
 
 - **Documentation**: `docs/` directory for detailed guides

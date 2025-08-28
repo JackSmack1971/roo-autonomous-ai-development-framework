@@ -76,7 +76,7 @@
       "change": 0.0
     },
     "last_week": {
-      "direction": "stable", 
+      "direction": "stable",
       "change": 0.0
     },
     "last_month": {
@@ -84,7 +84,15 @@
       "change": 0.0
     }
   },
-  
+
+  "intelligent_analysis": {
+    "velocity_quality_optimization": {
+      "optimal_quality_speed_balance": 0.85,
+      "current_balance_score": null,
+      "optimization_recommendations": []
+    }
+  },
+
   "predictive_quality_indicators": {
     "quality_risks": [],
     "improvement_opportunities": [],

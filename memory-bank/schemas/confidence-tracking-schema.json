@@ -1,0 +1,415 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://roo-framework.org/schemas/confidence-tracking-schema.json",
+  "title": "Confidence Tracking Schema",
+  "description": "JSON schema for validating confidence tracking configuration and data",
+  "type": "object",
+  "required": ["pattern_id", "confidence_algorithm", "tracking_history"],
+  "properties": {
+    "pattern_id": {
+      "type": "string",
+      "description": "Unique identifier for the pattern being tracked",
+      "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+    },
+    "confidence_algorithm": {
+      "type": "object",
+      "description": "Configuration for the confidence algorithm",
+      "required": ["initial_confidence", "success_increment", "failure_decrement"],
+      "properties": {
+        "initial_confidence": {
+          "type": "number",
+          "description": "Initial confidence score for new patterns",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.5
+        },
+        "success_increment": {
+          "type": "number",
+          "description": "Confidence increment on successful application",
+          "minimum": 0.0,
+          "maximum": 0.5,
+          "default": 0.1
+        },
+        "failure_decrement": {
+          "type": "number",
+          "description": "Confidence decrement on failed application",
+          "minimum": 0.0,
+          "maximum": 0.5,
+          "default": 0.2
+        },
+        "max_confidence": {
+          "type": "number",
+          "description": "Maximum allowed confidence score",
+          "minimum": 0.5,
+          "maximum": 1.0,
+          "default": 0.95
+        },
+        "min_confidence": {
+          "type": "number",
+          "description": "Minimum allowed confidence score",
+          "minimum": 0.0,
+          "maximum": 0.5,
+          "default": 0.1
+        },
+        "adaptation_rate": {
+          "type": "number",
+          "description": "Rate at which confidence adapts to new evidence",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.05
+        },
+        "context_weight": {
+          "type": "number",
+          "description": "Weight given to context similarity in confidence calculation",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.3
+        },
+        "recency_weight": {
+          "type": "number",
+          "description": "Weight given to recency of applications",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.2
+        },
+        "diversity_weight": {
+          "type": "number",
+          "description": "Weight given to diversity of application contexts",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.1
+        }
+      }
+    },
+    "decision_thresholds": {
+      "type": "object",
+      "description": "Thresholds for different decision types",
+      "required": ["auto_apply", "recommend", "experimental"],
+      "properties": {
+        "auto_apply": {
+          "type": "number",
+          "description": "Confidence threshold for automatic application",
+          "minimum": 0.5,
+          "maximum": 1.0,
+          "default": 0.8
+        },
+        "recommend": {
+          "type": "number",
+          "description": "Confidence threshold for recommendation",
+          "minimum": 0.3,
+          "maximum": 0.9,
+          "default": 0.6
+        },
+        "experimental": {
+          "type": "number",
+          "description": "Confidence threshold for experimental application",
+          "minimum": 0.2,
+          "maximum": 0.7,
+          "default": 0.4
+        },
+        "deprecated": {
+          "type": "number",
+          "description": "Confidence threshold below which pattern is deprecated",
+          "minimum": 0.0,
+          "maximum": 0.3,
+          "default": 0.2
+        }
+      }
+    },
+    "confidence_decay": {
+      "type": "object",
+      "description": "Configuration for confidence decay over time",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether confidence decay is enabled",
+          "default": true
+        },
+        "decay_rate": {
+          "type": "number",
+          "description": "Monthly decay rate for unused patterns",
+          "minimum": 0.0,
+          "maximum": 0.5,
+          "default": 0.02
+        },
+        "usage_threshold_days": {
+          "type": "integer",
+          "description": "Days without usage before decay applies",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 30
+        },
+        "min_decay_confidence": {
+          "type": "number",
+          "description": "Minimum confidence after decay",
+          "minimum": 0.0,
+          "maximum": 0.5,
+          "default": 0.3
+        },
+        "decay_calculation_method": {
+          "type": "string",
+          "enum": ["linear", "exponential", "stepwise"],
+          "default": "exponential"
+        }
+      }
+    },
+    "current_confidence": {
+      "type": "object",
+      "description": "Current confidence state",
+      "required": ["score", "last_updated", "calculation_method"],
+      "properties": {
+        "score": {
+          "type": "number",
+          "description": "Current confidence score",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When confidence was last updated"
+        },
+        "calculation_method": {
+          "type": "string",
+          "enum": ["simple_average", "weighted_average", "bayesian_update", "reinforcement_learning"],
+          "description": "Method used to calculate confidence"
+        },
+        "confidence_trend": {
+          "type": "string",
+          "enum": ["increasing", "stable", "decreasing", "volatile"],
+          "description": "Trend in confidence over time"
+        },
+        "confidence_volatility": {
+          "type": "number",
+          "description": "Volatility of confidence changes",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      }
+    },
+    "tracking_history": {
+      "type": "array",
+      "description": "History of confidence changes and applications",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "event_type", "confidence_before", "confidence_after"],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the event occurred"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": ["application_success", "application_failure", "manual_adjustment", "decay_adjustment", "algorithm_update"],
+            "description": "Type of event that affected confidence"
+          },
+          "confidence_before": {
+            "type": "number",
+            "description": "Confidence score before the event",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "confidence_after": {
+            "type": "number",
+            "description": "Confidence score after the event",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "change_reason": {
+            "type": "string",
+            "description": "Reason for the confidence change",
+            "maxLength": 500
+          },
+          "application_context": {
+            "type": "object",
+            "description": "Context in which pattern was applied (for application events)"
+          },
+          "quality_impact": {
+            "type": "object",
+            "description": "Impact on quality metrics (for application events)",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "manual_adjustment_reason": {
+            "type": "string",
+            "description": "Reason for manual adjustment (for manual_adjustment events)",
+            "maxLength": 500
+          },
+          "algorithm_version": {
+            "type": "string",
+            "description": "Version of algorithm used for calculation",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          }
+        }
+      }
+    },
+    "success_metrics": {
+      "type": "object",
+      "description": "Success metrics for the pattern",
+      "properties": {
+        "total_applications": {
+          "type": "integer",
+          "description": "Total number of times pattern has been applied",
+          "minimum": 0
+        },
+        "successful_applications": {
+          "type": "integer",
+          "description": "Number of successful applications",
+          "minimum": 0
+        },
+        "partially_successful_applications": {
+          "type": "integer",
+          "description": "Number of partially successful applications",
+          "minimum": 0
+        },
+        "failed_applications": {
+          "type": "integer",
+          "description": "Number of failed applications",
+          "minimum": 0
+        },
+        "success_rate": {
+          "type": "number",
+          "description": "Calculated success rate",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "average_quality_impact": {
+          "type": "number",
+          "description": "Average impact on quality metrics"
+        },
+        "last_success_rate_calculation": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When success rate was last calculated"
+        }
+      }
+    },
+    "context_performance": {
+      "type": "object",
+      "description": "Performance metrics by context type",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "applications": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "success_rate": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "average_confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "last_applied": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "adaptation_rules": {
+      "type": "object",
+      "description": "Rules for automatic pattern adaptation",
+      "properties": {
+        "min_applications_for_adaptation": {
+          "type": "integer",
+          "description": "Minimum applications before adaptation is considered",
+          "minimum": 3,
+          "maximum": 20,
+          "default": 5
+        },
+        "adaptation_triggers": {
+          "type": "array",
+          "description": "Conditions that trigger adaptation",
+          "items": {
+            "type": "object",
+            "required": ["condition", "action"],
+            "properties": {
+              "condition": {
+                "type": "string",
+                "enum": ["success_rate_below_threshold", "confidence_below_threshold", "consistent_failures", "context_drift"]
+              },
+              "threshold": {
+                "type": "number",
+                "description": "Threshold value for the condition"
+              },
+              "action": {
+                "type": "string",
+                "enum": ["reduce_confidence", "increase_confidence", "deprecate_pattern", "refine_context_matching"]
+              }
+            }
+          }
+        },
+        "context_expansion_rules": {
+          "type": "object",
+          "description": "Rules for expanding pattern context",
+          "properties": {
+            "success_threshold": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 1.0,
+              "default": 0.8
+            },
+            "min_similar_contexts": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10,
+              "default": 3
+            },
+            "expansion_rate": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0,
+              "default": 0.1
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about the confidence tracking",
+      "required": ["created_at", "updated_at"],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When confidence tracking was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When confidence tracking was last updated"
+        },
+        "tracking_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "default": "1.0.0"
+        },
+        "algorithm_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Version of confidence algorithm being used"
+        },
+        "data_quality_score": {
+          "type": "number",
+          "description": "Quality score of tracking data",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "last_validation": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When tracking data was last validated"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -34,9 +34,59 @@ print_success() {
   echo "✅  $1"
 }
 
+# --- Intelligent Project Analysis Functions ---
+
+# Function to analyze project requirements and suggest optimal configuration
+analyze_project_intelligence() {
+    echo "🧠 Analyzing project requirements for optimal autonomous configuration..."
+
+    # Create new control plane files with intelligent defaults
+    touch "project/$PROJECT_NAME/control/capabilities.yaml"
+    touch "project/$PROJECT_NAME/control/issue-patterns.yaml"
+    touch "project/$PROJECT_NAME/control/workflow-state.json"
+    touch "project/$PROJECT_NAME/control/quality-dashboard.json"
+    touch "project/$PROJECT_NAME/control/technical-debt-register.json"
+    touch "project/$PROJECT_NAME/control/orchestrator-decisions.log.jsonl"
+
+    # Add new memory bank files within project structure
+    touch "project/memory-bank/learningHistory.md"
+    touch "project/memory-bank/delegationPatterns.md"
+    touch "project/memory-bank/conflictResolutions.md"
+    touch "project/memory-bank/qualityMetrics.md"
+    touch "project/memory-bank/technicalDebt.md"
+    touch "project/memory-bank/autonomousInsights.md"
+
+    print_success "Intelligent control plane initialized"
+}
+
+# Function to configure intelligent circuit breakers based on project size
+configure_intelligent_circuit_breakers() {
+    echo "🔧 Configuring intelligent circuit breakers..."
+
+    # Update JSON file paths in functions with intelligent defaults
+    jq '.circuit_breaker_states.infinite_delegation_prevention.max_delegation_depth = 6' \
+       "project/$PROJECT_NAME/control/workflow-state.json" > temp.json && mv temp.json "project/$PROJECT_NAME/control/workflow-state.json"
+
+    jq '.circuit_breaker_states.resource_contention_management.concurrent_task_limit = 12' \
+       "project/$PROJECT_NAME/control/workflow-state.json" > temp.json && mv temp.json "project/$PROJECT_NAME/control/workflow-state.json"
+
+    print_success "Circuit breakers configured with intelligent thresholds"
+}
+
+# Function to initialize quality optimization settings
+initialize_quality_intelligence() {
+    echo "📊 Initializing quality intelligence dashboard..."
+
+    # Update quality dashboard path with intelligent defaults
+    jq '.intelligent_analysis.velocity_quality_optimization.optimal_quality_speed_balance = 0.95' \
+       "project/$PROJECT_NAME/control/quality-dashboard.json" > temp.json && mv temp.json "project/$PROJECT_NAME/control/quality-dashboard.json"
+
+    print_success "Quality intelligence initialized"
+}
+
 # --- Main Script ---
 
-print_header "Roo Framework Project Initialization"
+print_header "Roo Framework Project Initialization with Intelligence"
 
 # 1. Get Project Name from User
 read -p "Enter a name for the new project (e.g., 'new-mobile-app'): " PROJECT_NAME
@@ -63,8 +113,8 @@ print_success "Project directories created at project/$PROJECT_NAME"
 # Define control file path for easier access
 CONTROL_DIR="project/$PROJECT_NAME/control"
 
-# 3. Initialize Control Files
-print_header "Step 2: Initializing Control Files"
+# 3. Initialize Intelligent Control Files
+print_header "Step 2: Initializing Intelligent Control Files"
 
 # --- backlog.yaml ---
 cat > "$CONTROL_DIR/backlog.yaml" << EOF
@@ -97,87 +147,66 @@ cat > "$CONTROL_DIR/capabilities.yaml" << EOF
 # Capabilities Registry: Lists the AI agents and their functions available to the system.
 version: 1.0
 agents:
-  - "sparc-orchestrator"
-  - "sparc-architect"
-  - "sparc-specification-writer"
-  - "sparc-pseudocode-designer"
-  - "sparc-code-implementer"
-  - "sparc-tdd-engineer"
-  - "sparc-security-architect"
-  - "security-reviewer"
-  - "performance-engineer"
-  - "integration-specialist"
-  - "database-specialist"
-  - "code-quality-specialist"
-  - "technical-debt-manager"
-  - "quality-assurance-coordinator"
-  - "rapid-fact-checker"
+   - "sparc-orchestrator"
+   - "sparc-architect"
+   - "sparc-specification-writer"
+   - "sparc-pseudocode-designer"
+   - "sparc-code-implementer"
+   - "sparc-tdd-engineer"
+   - "sparc-security-architect"
+   - "security-reviewer"
+   - "performance-engineer"
+   - "integration-specialist"
+   - "database-specialist"
+   - "code-quality-specialist"
+   - "technical-debt-manager"
+   - "quality-assurance-coordinator"
+   - "rapid-fact-checker"
 EOF
 print_success "Created capabilities.yaml"
 
-# --- issue-patterns.yaml ---
-touch "$CONTROL_DIR/issue-patterns.yaml"
-print_success "Created empty issue-patterns.yaml"
-
-# --- quality-dashboard.json ---
-cat > "$CONTROL_DIR/quality-dashboard.json" << EOF
-{
-  "version": "1.0",
-  "project_id": "$PROJECT_NAME",
-  "overall_quality_score": 1.0,
-  "metrics": {
-    "code_coverage": 0,
-    "maintainability_index": 100,
-    "security_vulnerabilities": 0,
-    "technical_debt_ratio": 0.0,
-    "build_success_rate": 1.0
-  },
-  "quality_trend": "stable"
-}
-EOF
-print_success "Created quality-dashboard.json"
-
-# --- workflow-state.json ---
-cat > "$CONTROL_DIR/workflow-state.json" << EOF
-{
-  "version": "2.0",
-  "project_id": "$PROJECT_NAME",
-  "state": "initialization",
-  "current_sprint": "SPRINT-01",
-  "active_tasks": [],
-  "pending_tasks": [],
-  "completed_tasks": [],
-  "issue_log": [],
-  "predictive_insights": {
-    "potential_bottlenecks": [],
-    "recommended_actions": []
-  }
-}
-EOF
-print_success "Created workflow-state.json"
+# Initialize intelligent control plane
+analyze_project_intelligence
+configure_intelligent_circuit_breakers
+initialize_quality_intelligence
 
 # 4. Initialize Memory Bank Files
 print_header "Step 3: Initializing Memory Bank"
-
 # --- decisionLog.md ---
-cat > "memory-bank/decisionLog.md" << EOF
-# Decision Log
+cat > "project/memory-bank/decisionLog.md" << EOF
+# Enhanced Decision Log with Pattern Learning
 
-*This log records significant decisions made by the autonomous system, including architectural choices, conflict resolutions, and strategic pivots.*
+*This log captures decisions with pattern recognition for autonomous learning and replication.*
 
 ---
-EOF
-print_success "Initialized decisionLog.md"
 
+## Decision Entry Template
+
+### DECISION_[YYYY_MM_DD_HHmm]: [DECISION_TYPE]_[BRIEF_DESCRIPTION]
+
+**Pattern Classification**: \`[authentication_decision|architecture_choice|security_implementation|performance_optimization]\`
+**Decision Confidence**: [0.0-1.0]
+**Complexity Score**: [0.0-1.0]
+**Business Impact**: [Low|Medium|High|Critical]
+EOF
+print_success "Initialized enhanced decisionLog.md"
 # --- delegationPatterns.md ---
-cat > "memory-bank/delegationPatterns.md" << EOF
-# Delegation Patterns
+cat > "project/memory-bank/delegationPatterns.md" << EOF
+# Intelligent Delegation Patterns
 
-*This document stores successful sequences of task delegations and collaborations between AI agents. It serves as a blueprint for efficient workflow execution.*
+*Successful delegation sequences with optimization metrics and auto-application logic.*
 
 ---
+
+## Workflow Pattern Template
+
+### PATTERN_[ID]: [PATTERN_NAME]
+**Success Rate**: [X%] ([successful_implementations]/[total_attempts])
+**Average Cycle Time**: [X.X] days
+**Quality Score Average**: [0.XX]
+**Optimization Level**: [Basic|Intermediate|Advanced]
 EOF
-print_success "Initialized delegationPatterns.md"
+print_success "Initialized intelligent delegationPatterns.md"
 
 # --- learningHistory.md ---
 cat > "memory-bank/learningHistory.md" << EOF
@@ -208,16 +237,29 @@ cat > "memory-bank/progress.md" << EOF
 ---
 EOF
 print_success "Initialized progress.md"
-
 # --- systemPatterns.md ---
-cat > "memory-bank/systemPatterns.md" << EOF
-# System & Architectural Patterns
+cat > "project/memory-bank/systemPatterns.md" << EOF
+# System Patterns with Autonomous Learning
 
-*A repository of approved architectural patterns, technology stacks, and coding standards for this project.*
+*Approved architectural patterns, technology stacks, and coding standards for this project.*
 
 ---
+
+## Autonomous Pattern Recognition
+
+### Pattern Learning Algorithm
+\`\`\`yaml
+pattern_detection:
+  frequency_threshold: 3  # Pattern must occur 3+ times to be recognized
+  success_rate_threshold: 0.75  # Must have 75%+ success rate
+  confidence_building:
+    initial_confidence: 0.5
+    success_increment: 0.1
+    failure_decrement: 0.15
+    max_confidence: 0.95
+\`\`\`
 EOF
-print_success "Initialized systemPatterns.md"
+print_success "Initialized systemPatterns.md with autonomous learning"
 
 
 # --- Finalization ---

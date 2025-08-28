@@ -1,0 +1,551 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://roo-framework.org/schemas/session-handoff-schema.json",
+  "title": "Session Handoff Schema",
+  "description": "JSON schema for validating session handoff packages in the learning system",
+  "type": "object",
+  "required": ["session_id", "timestamp", "context_snapshot", "transfer_metadata"],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "Unique identifier for the session",
+      "pattern": "^[a-zA-Z0-9_-]+-\\d{8}-\\d{6}$",
+      "examples": ["sparc-code-implementer-20250828-143022"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when handoff was created"
+    },
+    "context_snapshot": {
+      "type": "object",
+      "description": "Snapshot of session context at handoff time",
+      "required": ["active_patterns", "pending_decisions", "quality_status"],
+      "properties": {
+        "active_patterns": {
+          "type": "array",
+          "description": "Patterns currently active in the session",
+          "items": {
+            "type": "object",
+            "required": ["pattern_id", "confidence_score", "application_status"],
+            "properties": {
+              "pattern_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+              },
+              "confidence_score": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "application_status": {
+                "type": "string",
+                "enum": ["applied", "recommended", "pending", "failed"]
+              },
+              "application_timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "context_match_score": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            }
+          }
+        },
+        "pending_decisions": {
+          "type": "array",
+          "description": "Decisions pending in the session",
+          "items": {
+            "type": "object",
+            "required": ["decision_id", "decision_type", "priority"],
+            "properties": {
+              "decision_id": {
+                "type": "string",
+                "pattern": "^DECISION_[A-Z]{3}_\\d{4}_\\d{2}_\\d{2}_\\d{6}$"
+              },
+              "decision_type": {
+                "type": "string",
+                "enum": [
+                  "architecture_choice",
+                  "technology_selection",
+                  "security_implementation",
+                  "performance_optimization",
+                  "quality_gate_definition",
+                  "integration_pattern",
+                  "deployment_strategy",
+                  "testing_approach"
+                ]
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"]
+              },
+              "context": {
+                "type": "object",
+                "description": "Context for the pending decision"
+              },
+              "options_considered": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "created_timestamp": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "quality_status": {
+          "type": "object",
+          "description": "Current quality status of the session",
+          "properties": {
+            "overall_quality_score": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "quality_gates_status": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "enum": ["passed", "failed", "pending", "not_applicable"]
+              }
+            },
+            "quality_metrics": {
+              "type": "object",
+              "description": "Current quality metrics",
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "quality_trends": {
+              "type": "object",
+              "description": "Quality trends over the session",
+              "properties": {
+                "quality_improvement_rate": {
+                  "type": "number"
+                },
+                "gate_failure_rate": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0
+                },
+                "pattern_success_rate": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0
+                }
+              }
+            }
+          }
+        },
+        "work_priorities": {
+          "type": "array",
+          "description": "Current work priorities in the session",
+          "items": {
+            "type": "object",
+            "required": ["priority_id", "description", "priority_level"],
+            "properties": {
+              "priority_id": {
+                "type": "string",
+                "pattern": "^PRIORITY_\\d{3}$"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 300
+              },
+              "priority_level": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"]
+              },
+              "created_timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "dependencies": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^(TASK|DECISION)_\\d{3,6}$"
+                }
+              },
+              "estimated_completion": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "learned_patterns": {
+          "type": "array",
+          "description": "New patterns learned during the session",
+          "items": {
+            "type": "object",
+            "required": ["pattern_id", "discovery_context", "initial_confidence"],
+            "properties": {
+              "pattern_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+              },
+              "discovery_context": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 500
+              },
+              "initial_confidence": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "application_examples": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "transfer_importance": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "pattern_type": {
+                "type": "string",
+                "enum": ["security", "performance", "architecture", "quality", "integration", "deployment"]
+              }
+            }
+          }
+        },
+        "failed_attempts": {
+          "type": "array",
+          "description": "Failed pattern applications or decisions",
+          "items": {
+            "type": "object",
+            "required": ["attempt_id", "failure_type", "failure_reason"],
+            "properties": {
+              "attempt_id": {
+                "type": "string",
+                "pattern": "^ATTEMPT_[A-Z]{3}_\\d{4}_\\d{2}_\\d{2}_\\d{6}$"
+              },
+              "failure_type": {
+                "type": "string",
+                "enum": ["pattern_application", "decision_making", "quality_gate", "integration"]
+              },
+              "failure_reason": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 500
+              },
+              "context_at_failure": {
+                "type": "object",
+                "description": "Context when failure occurred"
+              },
+              "lessons_learned": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "recovery_actions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "failure_timestamp": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "learning_accumulation": {
+      "type": "object",
+      "description": "Accumulated learning from the session",
+      "properties": {
+        "successful_patterns": {
+          "type": "array",
+          "description": "Successfully applied patterns with outcomes",
+          "items": {
+            "type": "object",
+            "required": ["pattern_id", "application_timestamp", "outcome"],
+            "properties": {
+              "pattern_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+              },
+              "application_timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": ["highly_successful", "successful", "partially_successful"]
+              },
+              "quality_impact": {
+                "type": "object",
+                "description": "Impact on quality metrics",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "lessons_learned": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "context_factors": {
+                "type": "object",
+                "description": "Context factors that contributed to success"
+              }
+            }
+          }
+        },
+        "decision_outcomes": {
+          "type": "array",
+          "description": "Outcomes of decisions made during the session",
+          "items": {
+            "type": "object",
+            "required": ["decision_id", "outcome", "outcome_timestamp"],
+            "properties": {
+              "decision_id": {
+                "type": "string",
+                "pattern": "^DECISION_[A-Z]{3}_\\d{4}_\\d{2}_\\d{2}_\\d{6}$"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": ["successful", "partially_successful", "unsuccessful", "cancelled"]
+              },
+              "outcome_timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "outcome_details": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "business_impact": {
+                "type": "string",
+                "enum": ["positive", "neutral", "negative"]
+              },
+              "lessons_learned": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "quality_improvements": {
+          "type": "array",
+          "description": "Quality improvements achieved during the session",
+          "items": {
+            "type": "object",
+            "required": ["improvement_type", "improvement_description", "impact_measurement"],
+            "properties": {
+              "improvement_type": {
+                "type": "string",
+                "enum": ["security", "performance", "maintainability", "reliability", "testability"]
+              },
+              "improvement_description": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 500
+              },
+              "impact_measurement": {
+                "type": "object",
+                "description": "Quantitative measurement of improvement",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "before_metrics": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "after_metrics": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "adaptation_events": {
+          "type": "array",
+          "description": "Pattern adaptation events during the session",
+          "items": {
+            "type": "object",
+            "required": ["pattern_id", "adaptation_type", "adaptation_timestamp"],
+            "properties": {
+              "pattern_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+              },
+              "adaptation_type": {
+                "type": "string",
+                "enum": ["confidence_update", "context_expansion", "success_refinement", "failure_adaptation"]
+              },
+              "adaptation_timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "before_state": {
+                "type": "object",
+                "description": "Pattern state before adaptation"
+              },
+              "after_state": {
+                "type": "object",
+                "description": "Pattern state after adaptation"
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 500
+              },
+              "trigger_event": {
+                "type": "string",
+                "description": "Event that triggered the adaptation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "transfer_metadata": {
+      "type": "object",
+      "description": "Metadata for the transfer process",
+      "required": ["urgency_level", "context_importance"],
+      "properties": {
+        "urgency_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Urgency level of the context transfer"
+        },
+        "context_importance": {
+          "type": "number",
+          "description": "Importance score of the context (0.0-1.0)",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "estimated_transfer_time": {
+          "type": "string",
+          "description": "Estimated time to complete transfer",
+          "pattern": "^\\d+[mh]$",
+          "examples": ["5m", "30m", "2h"]
+        },
+        "compatibility_requirements": {
+          "type": "array",
+          "description": "Required capabilities for recipient",
+          "items": {
+            "type": "string",
+            "enum": [
+              "pattern_processing",
+              "decision_support",
+              "quality_gate_enforcement",
+              "learning_integration",
+              "context_restoration"
+            ]
+          }
+        },
+        "compression_applied": {
+          "type": "boolean",
+          "description": "Whether context has been compressed",
+          "default": false
+        },
+        "encryption_applied": {
+          "type": "boolean",
+          "description": "Whether context has been encrypted",
+          "default": true
+        },
+        "retention_policy": {
+          "type": "object",
+          "description": "Retention policy for this handoff",
+          "properties": {
+            "retention_period_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650,
+              "default": 365
+            },
+            "archival_required": {
+              "type": "boolean",
+              "default": true
+            },
+            "confidentiality_level": {
+              "type": "string",
+              "enum": ["public", "internal", "confidential"],
+              "default": "internal"
+            }
+          }
+        },
+        "transfer_attempts": {
+          "type": "integer",
+          "description": "Number of transfer attempts made",
+          "minimum": 0,
+          "default": 0
+        },
+        "last_attempt_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of last transfer attempt"
+        },
+        "failure_reasons": {
+          "type": "array",
+          "description": "Reasons for transfer failures",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "validation_results": {
+      "type": "object",
+      "description": "Results of handoff validation",
+      "properties": {
+        "is_valid": {
+          "type": "boolean",
+          "description": "Whether handoff package is valid"
+        },
+        "validation_errors": {
+          "type": "array",
+          "description": "Validation errors found",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation_warnings": {
+          "type": "array",
+          "description": "Validation warnings found",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "validated_by": {
+          "type": "string",
+          "description": "Component that performed validation"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,405 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://roo-framework.org/schemas/decision-context-schema.json",
+  "title": "Decision Context Schema",
+  "description": "JSON schema for validating decision context in the learning system",
+  "type": "object",
+  "required": ["decision_id", "timestamp", "context", "decision_details"],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "description": "Unique identifier for the decision",
+      "pattern": "^DECISION_[A-Z]{3}_\\d{4}_\\d{2}_\\d{2}_\\d{6}$",
+      "examples": ["DECISION_SEC_2025_08_28_143022"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when decision was made"
+    },
+    "context": {
+      "type": "object",
+      "description": "Context information for the decision",
+      "required": ["project_context", "technical_context"],
+      "properties": {
+        "project_context": {
+          "type": "object",
+          "description": "Project-level context information",
+          "properties": {
+            "project_type": {
+              "type": "string",
+              "enum": ["web_app", "mobile_app", "api_service", "microservices", "data_pipeline", "desktop_app"]
+            },
+            "technology_stack": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "team_size": {
+              "type": "string",
+              "enum": ["individual", "small_team", "large_team"]
+            },
+            "timeline_pressure": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            },
+            "quality_requirements": {
+              "type": "string",
+              "enum": ["standard", "high", "critical"]
+            }
+          }
+        },
+        "technical_context": {
+          "type": "object",
+          "description": "Technical context for the decision",
+          "properties": {
+            "component_type": {
+              "type": "string",
+              "enum": ["authentication", "database", "api", "ui", "business_logic", "infrastructure", "security", "performance"]
+            },
+            "architecture_pattern": {
+              "type": "string",
+              "enum": ["monolithic", "microservices", "serverless", "event_driven", "layered"]
+            },
+            "complexity_level": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            },
+            "dependencies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "constraints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "business_context": {
+          "type": "object",
+          "description": "Business context for the decision",
+          "properties": {
+            "stakeholders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "business_impact": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            },
+            "risk_level": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            },
+            "compliance_requirements": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["gdpr", "hipaa", "pci_dss", "sox", "iso_27001"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "decision_details": {
+      "type": "object",
+      "description": "Details of the decision made",
+      "required": ["decision_type", "options_considered", "chosen_option", "rationale"],
+      "properties": {
+        "decision_type": {
+          "type": "string",
+          "enum": [
+            "architecture_choice",
+            "technology_selection",
+            "security_implementation",
+            "performance_optimization",
+            "quality_gate_definition",
+            "integration_pattern",
+            "deployment_strategy",
+            "testing_approach"
+          ]
+        },
+        "options_considered": {
+          "type": "array",
+          "description": "Options that were considered",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["option", "pros", "cons"],
+            "properties": {
+              "option": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 200
+              },
+              "pros": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "estimated_effort": {
+                "type": "string",
+                "enum": ["low", "medium", "high"]
+              },
+              "risk_level": {
+                "type": "string",
+                "enum": ["low", "medium", "high"]
+              }
+            }
+          }
+        },
+        "chosen_option": {
+          "type": "string",
+          "description": "The option that was chosen",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Detailed reasoning for the decision",
+          "minLength": 10,
+          "maxLength": 2000
+        },
+        "expected_outcomes": {
+          "type": "array",
+          "description": "Expected outcomes of the decision",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          }
+        },
+        "risks_identified": {
+          "type": "array",
+          "description": "Risks identified with this decision",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          }
+        },
+        "mitigation_strategies": {
+          "type": "array",
+          "description": "Strategies to mitigate identified risks",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          }
+        }
+      }
+    },
+    "decision_outcome": {
+      "type": "object",
+      "description": "Outcome and results of the decision",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["successful", "partially_successful", "unsuccessful", "pending", "cancelled"]
+        },
+        "completion_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the decision outcome was determined"
+        },
+        "actual_outcomes": {
+          "type": "array",
+          "description": "Actual outcomes achieved",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          }
+        },
+        "lessons_learned": {
+          "type": "array",
+          "description": "Lessons learned from this decision",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 500
+          }
+        },
+        "metrics_achieved": {
+          "type": "object",
+          "description": "Quantitative metrics achieved",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "follow_up_actions": {
+          "type": "array",
+          "description": "Follow-up actions required",
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          }
+        }
+      }
+    },
+    "quality_assessment": {
+      "type": "object",
+      "description": "Quality assessment of the decision",
+      "properties": {
+        "decision_quality_score": {
+          "type": "number",
+          "description": "Overall quality score of the decision (0.0-1.0)",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "process_followed": {
+          "type": "boolean",
+          "description": "Whether proper decision process was followed"
+        },
+        "stakeholder_involvement": {
+          "type": "string",
+          "enum": ["none", "minimal", "adequate", "extensive"],
+          "description": "Level of stakeholder involvement"
+        },
+        "documentation_quality": {
+          "type": "string",
+          "enum": ["poor", "adequate", "good", "excellent"],
+          "description": "Quality of decision documentation"
+        },
+        "alternative_analysis": {
+          "type": "string",
+          "enum": ["insufficient", "adequate", "comprehensive"],
+          "description": "Thoroughness of alternative analysis"
+        },
+        "risk_assessment": {
+          "type": "string",
+          "enum": ["not_done", "superficial", "adequate", "comprehensive"],
+          "description": "Quality of risk assessment"
+        }
+      }
+    },
+    "pattern_learning": {
+      "type": "object",
+      "description": "Learning opportunities identified from this decision",
+      "properties": {
+        "new_patterns_identified": {
+          "type": "array",
+          "description": "New patterns identified from this decision",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+          }
+        },
+        "patterns_applied": {
+          "type": "array",
+          "description": "Existing patterns that were applied",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+          }
+        },
+        "pattern_effectiveness": {
+          "type": "object",
+          "description": "Effectiveness assessment of applied patterns",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "success_contribution": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "lessons_learned": {
+                "type": "string",
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "context_patterns": {
+          "type": "array",
+          "description": "Context patterns that influenced this decision",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about the decision record",
+      "required": ["created_by", "created_at"],
+      "properties": {
+        "created_by": {
+          "type": "string",
+          "description": "Mode or user who created this decision record",
+          "enum": [
+            "sparc-architect",
+            "sparc-code-implementer",
+            "sparc-security-architect",
+            "sparc-qa-analyst",
+            "framework-enhancement-architect",
+            "human_user"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_by": {
+          "type": "string",
+          "enum": [
+            "sparc-architect",
+            "sparc-code-implementer",
+            "sparc-security-architect",
+            "sparc-qa-analyst",
+            "framework-enhancement-architect",
+            "human_user"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "default": "1.0.0"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorizing the decision",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          }
+        },
+        "confidentiality_level": {
+          "type": "string",
+          "enum": ["public", "internal", "confidential", "restricted"],
+          "default": "internal"
+        },
+        "retention_period_days": {
+          "type": "integer",
+          "description": "How long to retain this decision record",
+          "minimum": 30,
+          "maximum": 2555,
+          "default": 365
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

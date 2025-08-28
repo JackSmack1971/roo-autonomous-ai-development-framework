@@ -1,6 +1,17 @@
 # Issue Detection & Routing Patterns
 # Standardized patterns for detecting and routing issues between modes
 
+version: "2.0"
+pattern_library:
+  complexity_escalation_patterns:
+    authentication_complexity:
+      triggers:
+        - "multiple auth methods"
+        - "social login integration"
+        - "role-based permissions"
+      specialist_needed: "sparc-security-architect"
+      confidence_threshold: 0.8
+
 issue_patterns:
   
   # Security-Related Issues

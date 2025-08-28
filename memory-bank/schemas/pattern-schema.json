@@ -1,0 +1,557 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://roo-framework.org/schemas/pattern-schema.json",
+  "title": "Actionable Pattern Schema",
+  "description": "JSON schema for validating actionable patterns in the Roo autonomous learning system",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "trigger_conditions",
+    "auto_apply_actions",
+    "success_rate",
+    "confidence_score",
+    "context_match",
+    "metadata"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the pattern",
+      "pattern": "^[a-zA-Z0-9_-]+_v\\d+$",
+      "examples": [
+        "auth_mechanism_undefined_v1",
+        "n_plus_one_query_v1",
+        "api_contract_missing_v1"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name for the pattern",
+      "minLength": 3,
+      "maxLength": 100,
+      "examples": [
+        "Authentication Mechanism Undefined",
+        "N+1 Query Pattern Detected",
+        "API Contract Missing"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the pattern and its implications",
+      "minLength": 10,
+      "maxLength": 1000,
+      "examples": [
+        "Pattern detects when components handle sensitive data but no authentication mechanism is specified"
+      ]
+    },
+    "trigger_conditions": {
+      "type": "array",
+      "description": "Array of conditions that trigger this pattern",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 200
+      },
+      "examples": [
+        ["component_handles_user_data", "no_auth_specified", "security_implications_detected"]
+      ]
+    },
+    "auto_apply_actions": {
+      "type": "array",
+      "description": "Actions to automatically apply when pattern is triggered",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["action_type", "target_mode", "task_template"],
+        "properties": {
+          "action_type": {
+            "type": "string",
+            "enum": ["task_creation", "quality_gate", "workflow_optimization"],
+            "description": "Type of action to perform"
+          },
+          "target_mode": {
+            "type": "string",
+            "enum": [
+              "sparc-architect",
+              "sparc-code-implementer",
+              "sparc-security-architect",
+              "sparc-qa-analyst",
+              "integration-specialist",
+              "database-specialist",
+              "performance-engineer"
+            ],
+            "description": "Target mode for the action"
+          },
+          "task_template": {
+            "type": "object",
+            "required": ["title", "description", "acceptance_criteria", "priority"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 200,
+                "description": "Title template for the task"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 1000,
+                "description": "Description template for the task"
+              },
+              "acceptance_criteria": {
+                "type": "array",
+                "description": "Acceptance criteria for task completion",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 300
+                }
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"],
+                "description": "Priority level for the task"
+              },
+              "tags": {
+                "type": "array",
+                "description": "Tags for categorizing the task",
+                "items": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 50
+                }
+              },
+              "estimated_effort": {
+                "type": "string",
+                "enum": ["small", "medium", "large", "extra_large"],
+                "description": "Estimated effort for task completion"
+              },
+              "dependencies": {
+                "type": "array",
+                "description": "Task dependencies",
+                "items": {
+                  "type": "string",
+                  "pattern": "^TASK-\\d{3}$"
+                }
+              }
+            }
+          },
+          "quality_gates": {
+            "type": "array",
+            "description": "Quality gates that must be enforced",
+            "items": {
+              "type": "string",
+              "enum": [
+                "security_review",
+                "performance_test",
+                "integration_test",
+                "code_quality_review",
+                "documentation_review",
+                "accessibility_review",
+                "load_test",
+                "security_scan"
+              ]
+            }
+          },
+          "conditional_logic": {
+            "type": "object",
+            "description": "Conditional logic for action execution",
+            "properties": {
+              "condition": {
+                "type": "string",
+                "description": "Condition to evaluate"
+              },
+              "action_if_true": {
+                "type": "string",
+                "description": "Action if condition is true"
+              },
+              "action_if_false": {
+                "type": "string",
+                "description": "Action if condition is false"
+              }
+            }
+          }
+        }
+      }
+    },
+    "success_rate": {
+      "type": "number",
+      "description": "Historical success rate of pattern application (0.0-1.0)",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "examples": [0.92, 0.85, 0.78]
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "Current confidence score for pattern application (0.0-1.0)",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "examples": [0.88, 0.79, 0.65]
+    },
+    "context_match": {
+      "type": "object",
+      "description": "Context matching requirements for pattern activation",
+      "required": ["required_fields"],
+      "properties": {
+        "required_fields": {
+          "type": "array",
+          "description": "Fields that must be present in context",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "optional_fields": {
+          "type": "array",
+          "description": "Fields that enhance pattern matching",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "excluded_fields": {
+          "type": "array",
+          "description": "Fields that prevent pattern matching",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "similarity_threshold": {
+          "type": "number",
+          "description": "Minimum similarity score required (0.0-1.0)",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.7
+        },
+        "context_filters": {
+          "type": "object",
+          "description": "Additional context filtering criteria",
+          "properties": {
+            "technology_stack": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "project_type": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["web_app", "mobile_app", "api_service", "microservices", "data_pipeline", "desktop_app"]
+              }
+            },
+            "team_size": {
+              "type": "string",
+              "enum": ["individual", "small_team", "large_team"]
+            },
+            "timeline_pressure": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            }
+          }
+        }
+      }
+    },
+    "quality_gates": {
+      "type": "array",
+      "description": "Quality gates that must be enforced with this pattern",
+      "items": {
+        "type": "string",
+        "enum": [
+          "security_review",
+          "performance_test",
+          "integration_test",
+          "code_quality_review",
+          "documentation_review",
+          "accessibility_review",
+          "load_test",
+          "security_scan",
+          "compatibility_test",
+          "usability_test"
+        ]
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about the pattern",
+      "required": ["created_at", "pattern_type"],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when pattern was created"
+        },
+        "last_applied": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when pattern was last applied"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when pattern was last updated"
+        },
+        "source_projects": {
+          "type": "array",
+          "description": "Projects where this pattern was discovered or validated",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "pattern_type": {
+          "type": "string",
+          "enum": ["security", "performance", "architecture", "quality", "integration", "deployment"],
+          "description": "Category of the pattern"
+        },
+        "author_mode": {
+          "type": "string",
+          "description": "Mode that created or last modified this pattern",
+          "enum": [
+            "sparc-architect",
+            "sparc-code-implementer",
+            "sparc-security-architect",
+            "sparc-qa-analyst",
+            "framework-enhancement-architect"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version of the pattern",
+          "default": "1.0.0"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Additional tags for pattern categorization",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          }
+        },
+        "deprecation_status": {
+          "type": "object",
+          "description": "Deprecation information if pattern is being phased out",
+          "properties": {
+            "is_deprecated": {
+              "type": "boolean",
+              "default": false
+            },
+            "deprecation_reason": {
+              "type": "string",
+              "description": "Reason for deprecation"
+            },
+            "replacement_pattern": {
+              "type": "string",
+              "description": "ID of replacement pattern"
+            },
+            "deprecated_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When pattern was deprecated"
+            }
+          }
+        },
+        "usage_statistics": {
+          "type": "object",
+          "description": "Usage statistics for the pattern",
+          "properties": {
+            "total_applications": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total number of times pattern has been applied"
+            },
+            "successful_applications": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of successful applications"
+            },
+            "failed_applications": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of failed applications"
+            },
+            "average_confidence_impact": {
+              "type": "number",
+              "description": "Average impact on confidence score",
+              "minimum": -1.0,
+              "maximum": 1.0
+            },
+            "last_success_rate_calculation": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When success rate was last calculated"
+            }
+          }
+        }
+      }
+    },
+    "validation_rules": {
+      "type": "object",
+      "description": "Additional validation rules for pattern application",
+      "properties": {
+        "min_confidence_threshold": {
+          "type": "number",
+          "description": "Minimum confidence required for application",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.5
+        },
+        "max_applications_per_session": {
+          "type": "integer",
+          "description": "Maximum applications allowed per session",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        },
+        "cooldown_period_minutes": {
+          "type": "integer",
+          "description": "Cooldown period between applications (minutes)",
+          "minimum": 0,
+          "maximum": 1440,
+          "default": 60
+        },
+        "requires_human_approval": {
+          "type": "boolean",
+          "description": "Whether pattern requires human approval before application",
+          "default": false
+        },
+        "auto_apply_conditions": {
+          "type": "array",
+          "description": "Additional conditions for automatic application",
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "related_patterns": {
+      "type": "object",
+      "description": "Relationships with other patterns",
+      "properties": {
+        "prerequisites": {
+          "type": "array",
+          "description": "Patterns that should be applied before this one",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+          }
+        },
+        "conflicts": {
+          "type": "array",
+          "description": "Patterns that conflict with this one",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+          }
+        },
+        "complements": {
+          "type": "array",
+          "description": "Patterns that complement this one",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+          }
+        },
+        "supersedes": {
+          "type": "array",
+          "description": "Patterns that this pattern supersedes",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+_v\\d+$"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "taskTemplate": {
+      "type": "object",
+      "required": ["title", "description", "acceptance_criteria", "priority"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 1000
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          }
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          }
+        },
+        "estimated_effort": {
+          "type": "string",
+          "enum": ["small", "medium", "large", "extra_large"]
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^TASK-\\d{3}$"
+          }
+        }
+      }
+    },
+    "contextFilter": {
+      "type": "object",
+      "properties": {
+        "technology_stack": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "project_type": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["web_app", "mobile_app", "api_service", "microservices", "data_pipeline", "desktop_app"]
+          }
+        },
+        "team_size": {
+          "type": "string",
+          "enum": ["individual", "small_team", "large_team"]
+        },
+        "timeline_pressure": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        }
+      }
+    }
+  }
+}

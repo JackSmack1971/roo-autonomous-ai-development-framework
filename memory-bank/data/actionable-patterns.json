@@ -1,0 +1,315 @@
+{
+  "metadata": {
+    "export_timestamp": "2025-08-28T00:40:00.000Z",
+    "total_patterns": 6,
+    "schema_version": "1.0.0"
+  },
+  "patterns": [
+    {
+      "id": "auth_mechanism_undefined_v1",
+      "name": "Authentication Mechanism Undefined",
+      "description": "Pattern detects when components handle sensitive data but no authentication mechanism is specified",
+      "trigger_conditions": [
+        "component_handles_user_data",
+        "no_auth_specified",
+        "security_implications_detected"
+      ],
+      "auto_apply_actions": [
+        {
+          "action_type": "task_creation",
+          "target_mode": "sparc-security-architect",
+          "task_template": {
+            "title": "Implement OAuth2/JWT authentication pattern",
+            "description": "Design and implement secure authentication mechanism for component handling sensitive user data",
+            "acceptance_criteria": [
+              "OAuth2/JWT authentication pattern implemented",
+              "Role-based authorization controls defined",
+              "Session management strategy specified",
+              "Security testing completed"
+            ],
+            "priority": "high",
+            "tags": ["security", "authentication", "oauth2"],
+            "estimated_effort": "large"
+          }
+        }
+      ],
+      "success_rate": 0.92,
+      "confidence_score": 0.85,
+      "context_match": {
+        "required_fields": ["component_type", "data_sensitivity"],
+        "optional_fields": ["user_facing", "api_endpoints"]
+      },
+      "quality_gates": ["security_review", "authentication_testing"],
+      "metadata": {
+        "created_at": "2025-08-28T00:30:00.000Z",
+        "last_applied": "2025-08-28T00:30:00.000Z",
+        "pattern_type": "security",
+        "author_mode": "framework-enhancement-architect",
+        "version": "1.0.0",
+        "tags": ["authentication", "security", "user_data"],
+        "usage_statistics": {
+          "total_applications": 23,
+          "successful_applications": 21,
+          "failed_applications": 2,
+          "average_quality_impact": 0.15,
+          "last_success_rate_calculation": "2025-08-28T00:30:00.000Z"
+        }
+      }
+    },
+    {
+      "id": "n_plus_one_query_v1",
+      "name": "N+1 Query Pattern",
+      "description": "Pattern detects multiple sequential database queries that could be optimized with JOIN or batch loading",
+      "trigger_conditions": [
+        "multiple_sequential_queries",
+        "user_facing_operation",
+        "performance_critical"
+      ],
+      "auto_apply_actions": [
+        {
+          "action_type": "task_creation",
+          "target_mode": "database-specialist",
+          "task_template": {
+            "title": "Optimize N+1 query pattern with JOIN or batch loading",
+            "description": "Refactor sequential database queries into efficient batch operations or JOIN queries",
+            "acceptance_criteria": [
+              "Query optimization implemented (JOIN or batch loading)",
+              "Database indexing strategy reviewed",
+              "Performance benchmarks meet requirements (< 100ms response time)",
+              "Load testing validates improvements"
+            ],
+            "priority": "high",
+            "tags": ["performance", "database", "optimization"],
+            "estimated_effort": "medium"
+          }
+        }
+      ],
+      "success_rate": 0.94,
+      "confidence_score": 0.88,
+      "context_match": {
+        "required_fields": ["query_pattern", "performance_impact"],
+        "optional_fields": ["user_facing", "scalability_requirements"]
+      },
+      "quality_gates": ["performance_test", "load_test"],
+      "metadata": {
+        "created_at": "2025-08-28T00:15:00.000Z",
+        "last_applied": "2025-08-28T00:15:00.000Z",
+        "pattern_type": "performance",
+        "author_mode": "framework-enhancement-architect",
+        "version": "1.0.0",
+        "tags": ["database", "performance", "optimization"],
+        "usage_statistics": {
+          "total_applications": 31,
+          "successful_applications": 29,
+          "failed_applications": 2,
+          "average_quality_impact": 0.25,
+          "last_success_rate_calculation": "2025-08-28T00:15:00.000Z"
+        }
+      }
+    },
+    {
+      "id": "input_validation_missing_v1",
+      "name": "Input Validation Missing",
+      "description": "Pattern detects when user input processing lacks proper validation, creating security vulnerabilities",
+      "trigger_conditions": [
+        "user_input_processing",
+        "no_validation_specified",
+        "data_flow_to_sensitive_operations"
+      ],
+      "auto_apply_actions": [
+        {
+          "action_type": "task_creation",
+          "target_mode": "sparc-code-implementer",
+          "task_template": {
+            "title": "Implement comprehensive input validation",
+            "description": "Add multi-layer input validation including boundary validation, business logic validation, and security checks",
+            "acceptance_criteria": [
+              "Input validation implemented at all layers",
+              "Security testing validates protection against injection attacks",
+              "Error handling provides clear user feedback",
+              "Validation rules documented and maintained"
+            ],
+            "priority": "high",
+            "tags": ["security", "validation", "input_sanitization"],
+            "estimated_effort": "medium"
+          }
+        }
+      ],
+      "success_rate": 0.89,
+      "confidence_score": 0.78,
+      "context_match": {
+        "required_fields": ["input_source", "data_destination"],
+        "optional_fields": ["user_facing", "api_endpoint"]
+      },
+      "quality_gates": ["security_review", "integration_test"],
+      "metadata": {
+        "created_at": "2025-08-27T23:45:00.000Z",
+        "last_applied": "2025-08-27T23:45:00.000Z",
+        "pattern_type": "security",
+        "author_mode": "framework-enhancement-architect",
+        "version": "1.0.0",
+        "tags": ["validation", "security", "input_handling"],
+        "usage_statistics": {
+          "total_applications": 18,
+          "successful_applications": 16,
+          "failed_applications": 2,
+          "average_quality_impact": 0.18,
+          "last_success_rate_calculation": "2025-08-27T23:45:00.000Z"
+        }
+      }
+    },
+    {
+      "id": "caching_strategy_missing_v1",
+      "name": "Caching Strategy Missing",
+      "description": "Pattern detects frequently accessed data without caching strategy, impacting performance",
+      "trigger_conditions": [
+        "frequently_accessed_data",
+        "no_caching_mechanism",
+        "performance_requirements_defined"
+      ],
+      "auto_apply_actions": [
+        {
+          "action_type": "task_creation",
+          "target_mode": "sparc-architect",
+          "task_template": {
+            "title": "Design multi-level caching strategy",
+            "description": "Implement appropriate caching strategy with Redis/cluster support and cache invalidation",
+            "acceptance_criteria": [
+              "Caching architecture designed and implemented",
+              "Cache invalidation strategy defined",
+              "Performance benchmarks validate improvements",
+              "Monitoring and alerting configured"
+            ],
+            "priority": "medium",
+            "tags": ["performance", "caching", "architecture"],
+            "estimated_effort": "large"
+          }
+        }
+      ],
+      "success_rate": 0.87,
+      "confidence_score": 0.76,
+      "context_match": {
+        "required_fields": ["data_access_pattern", "performance_requirement"],
+        "optional_fields": ["scalability_needs", "data_volatility"]
+      },
+      "quality_gates": ["performance_test", "architecture_review"],
+      "metadata": {
+        "created_at": "2025-08-27T23:20:00.000Z",
+        "last_applied": "2025-08-27T23:20:00.000Z",
+        "pattern_type": "performance",
+        "author_mode": "framework-enhancement-architect",
+        "version": "1.0.0",
+        "tags": ["caching", "performance", "architecture"],
+        "usage_statistics": {
+          "total_applications": 19,
+          "successful_applications": 16,
+          "failed_applications": 3,
+          "average_quality_impact": 0.22,
+          "last_success_rate_calculation": "2025-08-27T23:20:00.000Z"
+        }
+      }
+    },
+    {
+      "id": "api_contract_missing_v1",
+      "name": "API Contract Missing",
+      "description": "Pattern detects service integration without defined API contracts",
+      "trigger_conditions": [
+        "service_integration_required",
+        "no_contract_specification",
+        "multiple_consumers"
+      ],
+      "auto_apply_actions": [
+        {
+          "action_type": "task_creation",
+          "target_mode": "integration-specialist",
+          "task_template": {
+            "title": "Define API contract with OpenAPI specification",
+            "description": "Create comprehensive API contract using OpenAPI/Swagger specification with validation and documentation",
+            "acceptance_criteria": [
+              "OpenAPI specification created and validated",
+              "Contract testing implemented",
+              "API documentation generated",
+              "Consumer integration validated"
+            ],
+            "priority": "high",
+            "tags": ["api", "contract", "integration"],
+            "estimated_effort": "medium"
+          }
+        }
+      ],
+      "success_rate": 0.96,
+      "confidence_score": 0.91,
+      "context_match": {
+        "required_fields": ["service_type", "integration_pattern"],
+        "optional_fields": ["consumer_count", "data_format"]
+      },
+      "quality_gates": ["contract_validation", "integration_test"],
+      "metadata": {
+        "created_at": "2025-08-28T00:45:00.000Z",
+        "last_applied": "2025-08-28T00:45:00.000Z",
+        "pattern_type": "integration",
+        "author_mode": "framework-enhancement-architect",
+        "version": "1.0.0",
+        "tags": ["api", "contract", "openapi"],
+        "usage_statistics": {
+          "total_applications": 28,
+          "successful_applications": 27,
+          "failed_applications": 1,
+          "average_quality_impact": 0.12,
+          "last_success_rate_calculation": "2025-08-28T00:45:00.000Z"
+        }
+      }
+    },
+    {
+      "id": "microservice_boundary_unclear_v1",
+      "name": "Microservice Boundary Unclear",
+      "description": "Pattern detects microservice architecture without clear service boundaries and responsibilities",
+      "trigger_conditions": [
+        "microservice_architecture",
+        "unclear_service_boundaries",
+        "data_flow_complexity"
+      ],
+      "auto_apply_actions": [
+        {
+          "action_type": "task_creation",
+          "target_mode": "sparc-architect",
+          "task_template": {
+            "title": "Define clear microservice boundaries and contracts",
+            "description": "Use domain-driven design to define clear service boundaries, responsibilities, and contracts",
+            "acceptance_criteria": [
+              "Service boundaries clearly defined using DDD",
+              "Service contracts and interfaces specified",
+              "Data ownership and flow clarified",
+              "Independent deployment capability validated"
+            ],
+            "priority": "high",
+            "tags": ["microservices", "architecture", "domain_driven_design"],
+            "estimated_effort": "large"
+          }
+        }
+      ],
+      "success_rate": 0.85,
+      "confidence_score": 0.79,
+      "context_match": {
+        "required_fields": ["architecture_style", "service_count"],
+        "optional_fields": ["domain_complexity", "team_structure"]
+      },
+      "quality_gates": ["architecture_review", "integration_test"],
+      "metadata": {
+        "created_at": "2025-08-27T20:30:00.000Z",
+        "last_applied": "2025-08-27T20:30:00.000Z",
+        "pattern_type": "architecture",
+        "author_mode": "framework-enhancement-architect",
+        "version": "1.0.0",
+        "tags": ["microservices", "architecture", "boundaries"],
+        "usage_statistics": {
+          "total_applications": 22,
+          "successful_applications": 19,
+          "failed_applications": 3,
+          "average_quality_impact": 0.20,
+          "last_success_rate_calculation": "2025-08-27T20:30:00.000Z"
+        }
+      }
+    }
+  ]
+}

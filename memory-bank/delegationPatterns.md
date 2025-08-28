@@ -1,14 +1,16 @@
-# Delegation Patterns - Successful Inter-Mode Collaboration
+# Intelligent Delegation Patterns
 
-## Pattern Status
-- **Active Patterns**: Ready for application (patterns established from framework design)
-- **Learning Mode**: Continuous validation and optimization of delegation effectiveness
-- **Success Tracking**: Pattern performance monitored for continuous improvement
-- **Cross-Project Application**: Successful patterns available for reuse across projects
+*Successful delegation sequences with optimization metrics and auto-application logic.*
 
 ---
 
-## High-Success Collaboration Patterns
+## Workflow Pattern Template
+
+### PATTERN_[ID]: [PATTERN_NAME]
+**Success Rate**: [X%] ([successful_implementations]/[total_attempts])
+**Average Cycle Time**: [X.X] days
+**Quality Score Average**: [0.XX]
+**Optimization Level**: [Basic|Intermediate|Advanced]
 
 ### The "Security-Performance Validation Pipeline"
 **Pattern Name**: `architecture-security-performance-pipeline`

@@ -84,7 +84,19 @@
     "patterns_recognized": [],
     "adaptations_applied": []
   },
-  
+
+  "predictive_intelligence": {
+    "bottleneck_prediction": {
+      "enabled": true,
+      "algorithm": "historical_pattern_analysis",
+      "confidence_threshold": 0.75,
+      "early_warning_days": 2,
+      "current_bottleneck_probability": null,
+      "predicted_bottlenecks": [],
+      "auto_mitigation_enabled": true
+    }
+  },
+
   "completed_phases": [],
   
   "predictive_insights": {
