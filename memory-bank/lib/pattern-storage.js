@@ -10,6 +10,13 @@ const path = require('path');
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
 
+class PatternStorageError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'PatternStorageError';
+  }
+}
+
 class PatternStorage {
   constructor(options = {}) {
     this.storagePath = options.storagePath || path.join(__dirname, '..', 'data');
@@ -341,28 +348,36 @@ class PatternStorage {
   async updatePatternStats(patternId, success, newConfidence = null) {
     await this.initialize();
 
-    const pattern = await this.getPattern(patternId);
-
-    // Update success rate (simple moving average)
-    const currentSuccessRate = pattern.success_rate || 0;
-    pattern.success_rate = (currentSuccessRate * 0.9) + (success ? 0.1 : 0);
-
-    // Update confidence if provided
-    if (newConfidence !== null) {
-      pattern.confidence_score = Math.max(0.1, Math.min(0.95, newConfidence));
+    if (typeof patternId !== 'string' || typeof success !== 'boolean') {
+      throw new PatternStorageError('Invalid arguments for updatePatternStats');
     }
 
-    // Update metadata
-    pattern.metadata.last_applied = new Date().toISOString();
-    pattern.metadata.usage_statistics = {
-      ...pattern.metadata.usage_statistics,
-      total_applications: (pattern.metadata.usage_statistics?.total_applications || 0) + 1,
-      successful_applications: (pattern.metadata.usage_statistics?.successful_applications || 0) + (success ? 1 : 0),
-      last_success_rate_calculation: new Date().toISOString()
-    };
+    try {
+      const pattern = await this.getPattern(patternId);
+      const stats = pattern.metadata.usage_statistics || {};
 
-    await this.storePattern(pattern);
-    return pattern;
+      stats.total_applications = (stats.total_applications || 0) + 1;
+      if (success) {
+        stats.successful_applications = (stats.successful_applications || 0) + 1;
+      } else {
+        stats.failed_applications = (stats.failed_applications || 0) + 1;
+      }
+
+      pattern.success_rate = stats.successful_applications / stats.total_applications;
+
+      if (newConfidence !== null) {
+        pattern.confidence_score = Math.max(0.1, Math.min(0.95, newConfidence));
+      }
+
+      pattern.metadata.last_applied = new Date().toISOString();
+      stats.last_success_rate_calculation = pattern.metadata.last_applied;
+      pattern.metadata.usage_statistics = stats;
+
+      await this.storePattern(pattern);
+      return pattern;
+    } catch (error) {
+      throw new PatternStorageError(`Failed to update pattern stats: ${error.message}`);
+    }
   }
 
   /**

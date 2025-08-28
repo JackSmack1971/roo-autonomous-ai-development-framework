@@ -39,7 +39,7 @@
         "required_fields": ["component_type", "data_sensitivity"],
         "optional_fields": ["user_facing", "api_endpoints"]
       },
-      "quality_gates": ["security_review", "authentication_testing"],
+      "quality_gates": ["security_review", "security_scan"],
       "metadata": {
         "created_at": "2025-08-28T00:30:00.000Z",
         "last_applied": "2025-08-28T00:30:00.000Z",
@@ -51,7 +51,7 @@
           "total_applications": 23,
           "successful_applications": 21,
           "failed_applications": 2,
-          "average_quality_impact": 0.15,
+          "average_confidence_impact": 0.15,
           "last_success_rate_calculation": "2025-08-28T00:30:00.000Z"
         }
       }
@@ -102,7 +102,7 @@
           "total_applications": 31,
           "successful_applications": 29,
           "failed_applications": 2,
-          "average_quality_impact": 0.25,
+          "average_confidence_impact": 0.25,
           "last_success_rate_calculation": "2025-08-28T00:15:00.000Z"
         }
       }
@@ -153,7 +153,7 @@
           "total_applications": 18,
           "successful_applications": 16,
           "failed_applications": 2,
-          "average_quality_impact": 0.18,
+          "average_confidence_impact": 0.18,
           "last_success_rate_calculation": "2025-08-27T23:45:00.000Z"
         }
       }
@@ -192,7 +192,7 @@
         "required_fields": ["data_access_pattern", "performance_requirement"],
         "optional_fields": ["scalability_needs", "data_volatility"]
       },
-      "quality_gates": ["performance_test", "architecture_review"],
+      "quality_gates": ["performance_test", "code_quality_review"],
       "metadata": {
         "created_at": "2025-08-27T23:20:00.000Z",
         "last_applied": "2025-08-27T23:20:00.000Z",
@@ -204,7 +204,7 @@
           "total_applications": 19,
           "successful_applications": 16,
           "failed_applications": 3,
-          "average_quality_impact": 0.22,
+          "average_confidence_impact": 0.22,
           "last_success_rate_calculation": "2025-08-27T23:20:00.000Z"
         }
       }
@@ -243,7 +243,7 @@
         "required_fields": ["service_type", "integration_pattern"],
         "optional_fields": ["consumer_count", "data_format"]
       },
-      "quality_gates": ["contract_validation", "integration_test"],
+      "quality_gates": ["documentation_review", "integration_test"],
       "metadata": {
         "created_at": "2025-08-28T00:45:00.000Z",
         "last_applied": "2025-08-28T00:45:00.000Z",
@@ -255,7 +255,7 @@
           "total_applications": 28,
           "successful_applications": 27,
           "failed_applications": 1,
-          "average_quality_impact": 0.12,
+          "average_confidence_impact": 0.12,
           "last_success_rate_calculation": "2025-08-28T00:45:00.000Z"
         }
       }
@@ -294,7 +294,7 @@
         "required_fields": ["architecture_style", "service_count"],
         "optional_fields": ["domain_complexity", "team_structure"]
       },
-      "quality_gates": ["architecture_review", "integration_test"],
+      "quality_gates": ["code_quality_review", "integration_test"],
       "metadata": {
         "created_at": "2025-08-27T20:30:00.000Z",
         "last_applied": "2025-08-27T20:30:00.000Z",
@@ -306,7 +306,7 @@
           "total_applications": 22,
           "successful_applications": 19,
           "failed_applications": 3,
-          "average_quality_impact": 0.20,
+          "average_confidence_impact": 0.20,
           "last_success_rate_calculation": "2025-08-27T20:30:00.000Z"
         }
       }
