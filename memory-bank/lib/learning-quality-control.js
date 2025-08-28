@@ -5,8 +5,46 @@
  * Provides robust error handling, quality validation, and graceful degradation
  */
 
+const fs = require('fs/promises');
 const LearningProtocolClient = require('./learning-protocol-client');
 const LearningWorkflowHelpers = require('./learning-workflow-helpers');
+
+class QualityAnomalyError extends Error {
+  /**
+   * @param {string} message
+   * @param {Error} [cause]
+   */
+  constructor(message, cause) {
+    super(message);
+    this.name = 'QualityAnomalyError';
+    this.cause = cause;
+  }
+}
+
+const withTimeout = (p, ms = 2000) =>
+  Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
+
+const validateMetrics = (m) =>
+  m &&
+  typeof m.gate_type === 'string' &&
+  typeof m.overall_score === 'number' &&
+  m.overall_score >= 0 &&
+  m.overall_score <= 1;
+
+const updateControlFiles = async (dashboard, workflow, metrics) => {
+  const dash = dashboard && JSON.parse(await withTimeout(fs.readFile(dashboard, 'utf8')));
+  const flow = workflow && JSON.parse(await withTimeout(fs.readFile(workflow, 'utf8')));
+  (dash.predictive_quality_indicators ??= []).push({ warning: 'metric anomaly', metrics });
+  (flow.tasks ??= []).push({
+    assignee: 'Quality Coordinator',
+    priority: 'high',
+    task: 'Investigate metric anomaly',
+  });
+  await Promise.all([
+    withTimeout(fs.writeFile(dashboard, JSON.stringify(dash, null, 2))),
+    withTimeout(fs.writeFile(workflow, JSON.stringify(flow, null, 2)))
+  ]);
+};
 
 class LearningQualityControl {
   constructor(options = {}) {
@@ -335,6 +373,38 @@ class LearningQualityControl {
 
     } catch (error) {
       console.warn(`⚠️ [${this.modeName}] Failed to log quality metrics: ${error.message}`);
+    }
+  }
+
+  /**
+   * Detect anomalies in quality metrics
+   * @param {{gate_type:string, overall_score:number, timestamp:string}} metrics
+   * @returns {Promise<boolean>} true if anomaly logged
+   * @throws {QualityAnomalyError}
+   */
+  async detectQualityAnomalies(metrics) {
+    if (!validateMetrics(metrics)) {
+      throw new QualityAnomalyError('Invalid metrics input');
+    }
+    const key = `${this.modeName}_${metrics.gate_type}`,
+      prev = this.qualityMetrics.get(key);
+    if (
+      !prev ||
+      Math.abs(metrics.overall_score - prev.overall_score) / (prev.overall_score || 1) <= 0.1 ||
+      Math.abs(new Date(metrics.timestamp) - new Date(prev.timestamp)) > 86400000
+    ) {
+      return false;
+    }
+    const dashboard = process.env.QUALITY_DASHBOARD_PATH,
+      workflow = process.env.WORKFLOW_STATE_PATH;
+    for (let i = 0; i < 3; i++) {
+      try {
+        await updateControlFiles(dashboard, workflow, metrics);
+        return true;
+      } catch (err) {
+        if (i === 2) throw new QualityAnomalyError('Failed to record anomaly', err);
+        await new Promise((r) => setTimeout(r, 100));
+      }
     }
   }
 
