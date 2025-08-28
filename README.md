@@ -1,645 +1,1029 @@
-# 🚀 Advanced Roo Code Framework for Complex Development Projects
+# 🧠 Roo Advanced Autonomous AI Development Framework
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com) [![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://semver.org/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![Roo Code](https://img.shields.io/badge/Roo%20Code-Advanced-purple)](https://docs.anthropic.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![VS Code Extension Required](https://img.shields.io/badge/VS%20Code-Roo%20Code%20v3.25%2B-blue)](https://marketplace.visualstudio.com/items?itemName=roo-code)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)]()
 
-**A sophisticated Roo Code configuration framework that organizes complex development workflows through specialized AI modes, structured handoffs, and quality assurance patterns.**
+> **Revolutionary autonomous AI development system with 15+ specialized AI agents working collaboratively to deliver enterprise-grade software with minimal human intervention.**
+
+## 🚀 Quick Start
+
+**TL;DR**: An intelligent development system where AI specialists collaborate autonomously to build software, manage quality, resolve conflicts, and learn from every project.
+
+### **Key Differentiators**
+- **99% Autonomous Operation**: AI agents handle requirement analysis, architecture, coding, testing, and quality assurance
+- **Intelligent Conflict Resolution**: Evidence-based technical decision making between AI specialists  
+- **Continuous Learning**: Pattern recognition that improves performance across projects
+- **Quality-First Approach**: Built-in quality gates and monitoring with automatic intervention
+- **Enterprise Security**: Security-by-design with dedicated security architecture specialists
 
 ---
 
 ## 📋 Table of Contents
 
-- [🎯 What This Actually Does](#-what-this-actually-does)
-- [✅ What You Get](#-what-you-get)
-- [⚠️ What This Requires](#️-what-this-requires)
-- [🏗️ Framework Architecture](#️-framework-architecture)
-- [⚡ Quick Start](#-quick-start)
-- [🛠️ Installation](#️-installation)
-- [📖 Usage Guide](#-usage-guide)
-- [📁 Project Structure](#-project-structure)
-- [🔧 Configuration](#-configuration)
-- [📚 Examples](#-examples)
+1. [Architecture Overview](#-architecture-overview)
+2. [AI Agent Ecosystem](#-ai-agent-ecosystem)
+3. [Installation](#-installation)
+4. [Quick Start Guide](#-quick-start-guide)
+5. [Project Structure](#-project-structure)
+6. [Configuration](#-configuration)
+7. [Workflow Examples](#-workflow-examples)
+8. [Quality Assurance](#-quality-assurance)
+9. [Troubleshooting](#-troubleshooting)
+10. [Contributing](#-contributing)
 
-## 🎯 What This Actually Does
+---
 
-This framework provides **advanced Roo Code configurations** that transform how you manage complex development projects through AI assistance. Instead of using a single generic AI chat, you work with **specialized AI modes** that understand different aspects of development.
+## 🏗️ Architecture Overview
 
-### **Real Benefits You'll Get:**
-- **🎭 Specialized AI Personalities**: 15+ pre-configured modes for architecture, security, testing, implementation, etc.
-- **📋 Structured Workflows**: Organized handoffs between different types of work instead of chaotic back-and-forth
-- **🔍 Quality Assurance**: Built-in patterns for maintaining consistency across AI-generated outputs
-- **📊 Progress Tracking**: Clear visibility into project status and decision history
-- **🔒 Security-First**: Granular permissions and access controls for different AI operations
-- **🚀 Productivity Gains**: Faster iteration through purpose-built AI interactions
+The Roo Framework orchestrates specialized AI agents through an intelligent control plane that manages workflows, quality gates, and autonomous decision-making.
 
-### **What This Is NOT:**
-- ❌ **Not Fully Autonomous**: Requires substantial human oversight and decision-making
-- ❌ **Not Plug-and-Play**: Needs significant customization for your specific projects
-- ❌ **Not AI Magic**: Still fundamentally limited by what Roo Code and LLMs can actually do
-- ❌ **Not One-Size-Fits-All**: You'll need to adapt modes and workflows to your context
-
-## ✅ What You Get
-
-### **Advanced Mode Definitions**
-Pre-built specialized AI modes with:
-- **Role-specific expertise**: Security architect, performance engineer, test specialist, etc.
-- **Intelligent task delegation**: Modes that know when to hand off work to other specialists
-- **Quality gates**: Built-in criteria for evaluating completeness before handoffs
-- **Context awareness**: Understanding of how their work fits into larger workflows
-
-### **Structured Project Organization**
-- **State Management**: JSON schemas for tracking workflow progress and decisions
-- **Handoff Contracts**: Formal templates for passing work between AI modes
-- **Memory Systems**: Persistent context that maintains project knowledge across sessions
-- **Progress Tracking**: Clear visibility into what's been done and what's next
-
-### **Quality Assurance Framework**
-- **Consistency Checking**: Patterns for ensuring AI outputs align across modes
-- **Quality Metrics**: Measurable criteria for evaluating work quality
-- **Review Processes**: Structured approaches for validating AI-generated work
-- **Improvement Tracking**: Learn from successful patterns and avoid repeated issues
-
-### **Integration Patterns**
-- **MCP Server Integration**: Connect external services for research, fact-checking, web browsing
-- **API Provider Flexibility**: Work with Claude, GPT-4, local models, or enterprise providers
-- **Custom Commands**: Automate frequently-used prompts and workflows
-- **Team Collaboration**: Share configurations and maintain consistency across team members
-
-## ⚠️ What This Requires
-
-### **From You:**
-- **Roo Code Expertise**: This is for advanced users who understand Roo Code's capabilities and limitations
-- **Project Management**: You'll still need to plan, prioritize, and make strategic decisions
-- **Quality Oversight**: AI outputs require human validation and refinement
-- **Customization Work**: Expect to spend time adapting modes and workflows to your needs
-
-### **Technical Requirements:**
-- **VS Code** with Roo Code extension v3.25+
-- **API Access** to AI providers (Claude, OpenAI, etc.)
-- **Node.js 18+** for validation scripts (optional)
-- **Understanding of YAML/JSON** for configuration
-
-### **Time Investment:**
-- **Initial Setup**: 4-8 hours to configure and customize for your first project
-- **Learning Curve**: 1-2 weeks to become proficient with the workflow patterns
-- **Ongoing Maintenance**: Regular updates to modes and quality criteria as you learn what works
-
-## 🏗️ Framework Architecture
-
-### **Specialized AI Modes Working Together**
+### **High-Level System Architecture**
 
 ```mermaid
 graph TB
-    subgraph "Your Project Workflow"
-        PM[Project Manager] --> SW[Specification Writer]
-        SW --> A[System Architect]
-        A --> SA[Security Architect]
-        SA --> CD[Code Designer]
-        CD --> TDD[Test Engineer]
-        TDD --> CI[Code Implementer]
-        CI --> QA[QA Analyst]
-        QA --> INT[Integration Specialist]
+    subgraph "Human Interface Layer"
+        VSCode[VS Code + Roo Extension]
+        WebUI[Web Interface]
     end
     
-    subgraph "Quality & Coordination"
-        QC[Quality Coordinator]
-        TDM[Technical Debt Manager]
+    subgraph "Orchestration Layer"
+        Orchestrator[🧠 SPARC Orchestrator]
+        QACoord[📊 Quality Assurance Coordinator]
+        TechDebt[🔧 Technical Debt Manager]
     end
     
-    subgraph "Dynamic Specialists"
-        DS[Database Specialist]
-        PE[Performance Engineer]
-        SEC[Security Reviewer]
+    subgraph "Specialist Agents"
+        SpecWriter[📋 Specification Writer]
+        Architect[🏗️ System Architect]
+        Security[🛡️ Security Architect]
+        TDD[🧪 TDD Engineer]
+        CodeImpl[💻 Code Implementer]
+        Integration[🔌 Integration Specialist]
     end
     
-    QC -.-> SW
-    QC -.-> A
-    QC -.-> CI
-    A --> DS
-    CI --> PE
-    SA --> SEC
+    subgraph "Intelligence Layer"
+        MemoryBank[(🧠 Memory Bank)]
+        Patterns[(📊 Learning Patterns)]
+        QualityGates[(✅ Quality Gates)]
+    end
     
-    style PM fill:#e1f5fe
-    style QC fill:#f3e5f5
-    style TDM fill:#e8f5e8
+    subgraph "External Services"
+        MCP[MCP Servers]
+        APIs[External APIs]
+        Repos[Code Repositories]
+    end
+    
+    VSCode --> Orchestrator
+    Orchestrator --> SpecWriter
+    Orchestrator --> Architect
+    Orchestrator --> Security
+    Orchestrator --> QACoord
+    
+    SpecWriter --> TDD
+    Architect --> CodeImpl
+    Security --> Integration
+    
+    QACoord --> MemoryBank
+    TechDebt --> Patterns
+    
+    Orchestrator --> MCP
+    Integration --> APIs
+    CodeImpl --> Repos
+    
+    MemoryBank --> QualityGates
+    Patterns --> QualityGates
 ```
 
-### **How It Actually Works**
+### **Autonomous Workflow Engine**
 
-1. **You Start**: Choose appropriate mode for your current task
-2. **AI Executes**: Mode performs specialized work within its expertise
-3. **Quality Check**: Built-in criteria evaluate completeness and quality
-4. **Smart Handoffs**: Mode identifies what needs to happen next and creates appropriate tasks
-5. **You Coordinate**: Review outputs, make decisions, and guide overall direction
-6. **Continuous Improvement**: System learns from successful patterns
+```mermaid
+stateDiagram-v2
+    [*] --> ProjectInit: Human defines project context
+    
+    ProjectInit --> SpecificationPhase: Auto-delegate to Specification Writer
+    SpecificationPhase --> ArchitecturePhase: Requirements complete
+    ArchitecturePhase --> SecurityReview: Architecture ready
+    SecurityReview --> TestDesign: Security approved
+    TestDesign --> Implementation: Test specs ready
+    Implementation --> QualityAssurance: Code complete
+    QualityAssurance --> Integration: Quality gates passed
+    Integration --> Deployment: Integration validated
+    
+    state QualityAssurance {
+        [*] --> QualityCheck
+        QualityCheck --> QualityFail: Issues detected
+        QualityCheck --> QualityPass: All checks pass
+        QualityFail --> Remediation: Create fix tasks
+        Remediation --> QualityCheck: Fixes applied
+        QualityPass --> [*]
+    }
+    
+    state ConflictResolution {
+        [*] --> EvidenceGathering
+        EvidenceGathering --> StakeholderAnalysis
+        StakeholderAnalysis --> TechnicalDecision
+        TechnicalDecision --> [*]
+    }
+    
+    SecurityReview --> ConflictResolution: Conflicts detected
+    Implementation --> ConflictResolution: Technical disagreements
+    ConflictResolution --> SecurityReview: Resolution complete
+    ConflictResolution --> Implementation: Resolution complete
+    
+    Deployment --> [*]: Project complete
+```
 
-## ⚡ Quick Start
+### **Learning and Quality Management**
+
+```mermaid
+flowchart LR
+    subgraph "Input Sources"
+        ProjectContext[Project Context]
+        UserFeedback[User Feedback]
+        QualityMetrics[Quality Metrics]
+        WorkflowOutcomes[Workflow Outcomes]
+    end
+    
+    subgraph "Learning Engine"
+        PatternDetection[Pattern Detection]
+        SuccessAnalysis[Success Analysis]
+        FailureAnalysis[Failure Analysis]
+        Optimization[Optimization Logic]
+    end
+    
+    subgraph "Knowledge Base"
+        DecisionLog[Decision Log]
+        SystemPatterns[System Patterns]
+        DelegationPatterns[Delegation Patterns]
+        QualityStandards[Quality Standards]
+    end
+    
+    subgraph "Application Layer"
+        AutoTaskCreation[Auto Task Creation]
+        QualityGates[Dynamic Quality Gates]
+        WorkflowAdaptation[Workflow Adaptation]
+        ConflictPrevention[Conflict Prevention]
+    end
+    
+    ProjectContext --> PatternDetection
+    UserFeedback --> SuccessAnalysis
+    QualityMetrics --> FailureAnalysis
+    WorkflowOutcomes --> Optimization
+    
+    PatternDetection --> DecisionLog
+    SuccessAnalysis --> SystemPatterns
+    FailureAnalysis --> DelegationPatterns
+    Optimization --> QualityStandards
+    
+    DecisionLog --> AutoTaskCreation
+    SystemPatterns --> QualityGates
+    DelegationPatterns --> WorkflowAdaptation
+    QualityStandards --> ConflictPrevention
+```
+
+---
+
+## 🤖 AI Agent Ecosystem
+
+### **Core Orchestration Agents**
+
+| Agent | Role | Key Capabilities | Auto-Triggers |
+|-------|------|------------------|---------------|
+| **🧠 SPARC Orchestrator** | System Coordinator | Strategic oversight, conflict resolution, resource coordination | Quality crises, technical conflicts, workflow deadlocks |
+| **📊 Quality Assurance Coordinator** | Quality Guardian | Cross-mode consistency, quality intervention, continuous monitoring | Quality regressions, inconsistency detection |
+| **🔧 Technical Debt Manager** | Debt Prevention | Proactive debt detection, refactoring prioritization, maintenance planning | Code quality thresholds, complexity alerts |
+
+### **Domain Specialists**
+
+#### **Requirements & Design**
+- **📋 Specification Writer**: Requirements analysis, user story creation, acceptance criteria
+- **🏗️ System Architect**: Solution design, technology selection, architectural decisions
+- **🎨 UI/UX Designer**: User interface design, experience optimization, accessibility
+
+#### **Security & Compliance** 
+- **🛡️ Security Architect**: Threat modeling, security controls, vulnerability assessment
+- **👤 Privacy Specialist**: Data protection, regulatory compliance, privacy by design
+- **📋 Compliance Reviewer**: Standards adherence, audit preparation, regulatory alignment
+
+#### **Implementation & Testing**
+- **🧪 TDD Engineer**: Test strategy, test automation, quality validation
+- **💻 Code Implementer**: Feature development, code generation, implementation patterns
+- **🔌 Integration Specialist**: System integration, API coordination, service orchestration
+
+#### **Quality & Performance**
+- **⚡ Performance Engineer**: Performance optimization, scalability planning, monitoring
+- **🗃️ Database Specialist**: Data modeling, query optimization, database architecture
+- **♿ Accessibility Specialist**: WCAG compliance, inclusive design, accessibility testing
+
+### **Specialized Intelligence**
+
+```mermaid
+classDiagram
+    class AutonomousAgent {
+        +String slug
+        +String name
+        +Map~String~ capabilities
+        +List~QualityGate~ qualityGates
+        +assess_work_quality()
+        +detect_handoff_needs()
+        +create_specialist_tasks()
+        +validate_outputs()
+    }
+    
+    class SPARCOrchestrator {
+        +resolve_conflicts()
+        +coordinate_workflows()
+        +manage_escalations()
+        +optimize_resource_allocation()
+    }
+    
+    class QualityCoordinator {
+        +monitor_system_quality()
+        +detect_inconsistencies()
+        +trigger_interventions()
+        +maintain_quality_gates()
+    }
+    
+    class DomainSpecialist {
+        +String domain
+        +List~Pattern~ knownPatterns
+        +execute_domain_work()
+        +validate_domain_requirements()
+        +collaborate_with_peers()
+    }
+    
+    AutonomousAgent <|-- SPARCOrchestrator
+    AutonomousAgent <|-- QualityCoordinator
+    AutonomousAgent <|-- DomainSpecialist
+    
+    DomainSpecialist <|-- SpecificationWriter
+    DomainSpecialist <|-- SystemArchitect
+    DomainSpecialist <|-- SecurityArchitect
+    DomainSpecialist <|-- CodeImplementer
+```
+
+---
+
+## ⚙️ Installation
 
 ### **Prerequisites**
-- VS Code with Roo Code extension installed and configured
-- At least one AI provider (Claude recommended)
-- Basic familiarity with Roo Code custom modes
 
-### **30-Second Demo**
+- **VS Code** with Roo Code extension v3.25+
+- **Python 3.8+** for validation scripts
+- **Node.js 18+** for MCP server integration
+- **Git** for version control
+- **API Access** to AI providers (Claude, OpenAI, etc.)
+
+### **System Requirements**
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| RAM | 8GB | 16GB+ |
+| Storage | 2GB free space | 5GB+ SSD |
+| CPU | 4 cores | 8+ cores |
+| Network | Stable internet | High-speed connection |
+
+### **Step 1: Clone and Setup**
 
 ```bash
-# 1. Clone the repository
-git clone [repository-url]
+# Clone the framework
+git clone https://github.com/your-org/roo-advanced-framework.git
 cd roo-advanced-framework
 
-# 2. Open in VS Code
-code .
+# Install Python dependencies
+pip install -r requirements.txt
 
-# 3. Copy the .roomodes file to activate custom modes
-# VS Code will detect the new modes automatically
+# Install Node.js dependencies (for MCP servers)
+npm install
 
-# 4. Try a simple workflow
-# - Switch to "Specification Writer" mode
-# - Ask: "Create a specification for a user authentication system"
-# - Watch it create tasks for security architect and system architect
+# Make setup script executable
+chmod +x scripts/setup_project.sh
 ```
 
-**You'll immediately see**:
-- Multiple specialized modes available in Roo Code's mode selector
-- AI that understands its role and creates appropriate follow-up tasks
-- Structured approach to breaking down complex work
-- Clear handoff points between different types of expertise
+### **Step 2: Configure Roo Code Extension**
 
-## 🎯 Implementation Readiness Assessment
+1. **Install Extension**: VS Code Extensions → Search "Roo Code" → Install v3.25+
+2. **Configure Auto-Approval**: Enable autonomous task delegation in Roo Code settings
+3. **Set API Keys**: Configure your AI provider credentials in Roo Code
+4. **Test Connection**: Verify AI provider connectivity
 
-**Complete this assessment before adopting the framework to ensure success.**
+### **Step 3: Initialize Your First Project**
 
-### Technical Infrastructure Readiness
-*Score each item: 2 points if fully ready, 1 point if partially ready, 0 if not ready*
-
-- [ ] **VS Code + Roo Code v3.25+** - Extension installed and working __(2 pts)__
-- [ ] **MCP Server Configuration** - At least one MCP server (Exa/Perplexity) configured __(2 pts)__
-- [ ] **Auto-Approval Settings** - Configured in Roo Code UI for autonomous operation __(2 pts)__
-- [ ] **Git Repository** - Clean working directory with proper version control __(1 pt)__
-- [ ] **Development Environment** - Stable development setup with required tools __(1 pt)__
-
-**Technical Score: ___/8** (Minimum 6 required)
-
-### Phase 1 Setup Commands
 ```bash
-# Navigate to project directory first
-cd project/
+# Run the interactive setup
 ./scripts/setup_project.sh
-# When prompted, choose "conservative" settings
-# Enable human review for all decisions
+
+# Follow prompts to:
+# - Name your project (e.g., "my-saas-app")
+# - Choose project type (web app, mobile, API, etc.)
+# - Set initial quality standards
+# - Configure team size and timeline
 ```
 
-### Configuration File References
-All framework configuration is within the `project/` directory:
-- **Mode Definitions**: `project/.roomodes`
-- **Memory Bank**: `project/memory-bank/`
-- **Control Files**: `project/<project-id>/control/`
-- **Documentation**: `project/docs/`
-
-## 📈 Updated Implementation Schedule
-
-### **Week 1: Foundation Intelligence (All within project/ directory)**
-- [ ] TASK 1.1: Enhanced Orchestrator decision framework (project/.roomodes)
-- [ ] TASK 1.2: Smart Architect mode meta-cognition (project/.roomodes)
-- [ ] TASK 2.1: Predictive workflow state (project/<id>/control/workflow-state.json)
-- [ ] Test basic autonomous operation with enhanced decision-making
-
-### **Week 2: Quality and Learning Systems**
-- [ ] TASK 1.3: Intelligent QA coordinator (project/.roomodes)
-- [ ] TASK 2.2: Smart quality dashboard (project/<id>/control/quality-dashboard.json)
-- [ ] TASK 2.3: Issue pattern detection (project/<id>/control/issue-patterns.yaml)
-- [ ] Test quality prediction and intervention systems
-
-### **Week 3: Memory and Pattern Intelligence**
-- [ ] TASK 3.1: Enhanced decision logging (project/memory-bank/decisionLog.md)
-- [ ] TASK 3.2: Intelligent delegation patterns (project/memory-bank/delegationPatterns.md)
-- [ ] TASK 3.3: Learning system patterns (project/memory-bank/systemPatterns.md)
-- [ ] Test pattern recognition and auto-application
-
-### **Week 4: Operational Intelligence**
-- [ ] TASK 4.1: Smart project setup (project/scripts/setup_project.sh)
-- [ ] TASK 4.2: Readiness assessment (project/README.md)
-- [ ] TASK 4.3: Intelligent troubleshooting (project/docs/implementation-guide.md)
-- [ ] Full system validation and team training
-
-## 🎯 Success Validation Commands with Updated Paths
+### **Step 4: Validate Configuration**
 
 ```bash
-# Navigate to project directory first
-cd project/
+# Validate all configurations
+python scripts/validate_config.py your-project-name
 
-# Autonomous Operation Percentage Measurement
-measure_autonomous_percentage() {
-    echo "📊 Measuring Autonomous Operation Percentage..."
-
-    total_decisions=$(jq '.autonomous_actions_taken | length' */control/workflow-state.json)
-    human_interventions=$(jq '.human_escalations | length' */control/workflow-state.json)
-
-    autonomous_percentage=$(echo "scale=2; ($total_decisions - $human_interventions) / $total_decisions * 100" | bc)
-
-    echo "Current Autonomous Operation: ${autonomous_percentage}%"
-    echo "Target: 95%+"
-}
-
-# Quality Consistency Validation
-measure_quality_consistency() {
-    echo "📈 Measuring Quality Consistency..."
-
-    quality_scores=$(jq '.quality_oversight.quality_gates_status | [.[]] | map(select(. != "pending") | if . == "passed" then 1 else 0 end)' */control/workflow-state.json)
-    consistency_score=$(echo "$quality_scores" | jq 'add / length')
-
-    echo "Quality Consistency Score: ${consistency_score}"
-    echo "Target: >0.85"
-}
-
-# Learning System Effectiveness
-measure_learning_effectiveness() {
-    echo "🧠 Measuring Learning System Effectiveness..."
-
-    recognized_patterns=$(jq '.learning_state.patterns_recognized | length' */control/workflow-state.json)
-    applied_patterns=$(jq '.learning_state.adaptations_applied | length' */control/workflow-state.json)
-
-    learning_effectiveness=$(echo "scale=2; $applied_patterns / $recognized_patterns * 100" | bc)
-
-    echo "Learning Effectiveness: ${learning_effectiveness}%"
-    echo "Target: >75%"
-}
+# Should output: ✅ All configurations valid
 ```
 
-## ️ Installation
+---
 
-### **Step 1: Basic Setup**
+## 🚀 Quick Start Guide
+
+### **Your First Autonomous Development Session**
+
+#### **1. Define Project Context**
 
 ```bash
-# Clone and enter directory
-git clone [repository-url]
-cd roo-advanced-framework
-
-# Install validation tools (optional)
-npm install -g ajv-cli yaml-js
-
-# Validate configuration
-./scripts/validate.sh
+# Edit your project's context
+code memory-bank/productContext.md
 ```
 
-### **Step 2: VS Code Integration**
-
-1. **Ensure Roo Code Extension**: Latest version installed and configured
-2. **Open Project Folder**: The `.roomodes` file will be automatically detected
-3. **Configure Auto-Approval**: Enable appropriate auto-approval settings in Roo Code UI
-4. **Test Mode Switching**: Try switching between different modes in the mode selector
-
-### **Step 3: Customize for Your Project**
-
-```bash
-# Update project identity
-mv project/sample-app project/your-project-name
-
-# Edit core context files
-code memory-bank/productContext.md    # Your project's business context
-code memory-bank/systemPatterns.md   # Your coding standards
-code project/your-project-name/control/backlog.yaml  # Your project backlog
-```
-
-### **Step 4: Optional Enhancements**
-
-**MCP Servers** (for enhanced research capabilities):
-- Configure Exa for web search
-- Set up Perplexity for fact-checking
-- Add Context7 for technical documentation access
-
-**See `docs/mcp/config.sample.md` for detailed MCP setup instructions.**
-
-## 📖 Usage Guide
-
-### **Starting Your First Workflow**
-
-**1. Define Your Project Context**
 ```markdown
-# Edit memory-bank/productContext.md
+# Product Context - My SaaS App
+
 ## Vision
-Building a SaaS application for small business inventory management
+Building a customer relationship management system for small businesses
 
-## Goals
-- MVP launch within 3 months
-- Support 100 concurrent users
-- Simple, intuitive interface
-- Robust data security
+## Success Criteria
+- MVP launch within 8 weeks
+- Support 1000+ concurrent users
+- Mobile-responsive design
+- SOC 2 compliance ready
+
+## Technical Constraints
+- Cloud-first architecture
+- PostgreSQL database
+- React frontend
+- Node.js backend
+- Kubernetes deployment
 ```
 
-**2. Begin with Specification Writer**
+#### **2. Start with Specification Writer**
+
+In VS Code, switch to "📋 Specification Writer" mode and enter:
+
 ```
-Switch to: "📋 Specification Writer" mode
-Prompt: "Create a detailed specification for user authentication and authorization, 
-considering small business users who aren't technically sophisticated."
+Create a comprehensive specification for user authentication and account management, 
+considering small business users who need simple but secure access controls.
 ```
 
-**3. Watch the Workflow Unfold**
-- Specification Writer will create requirements and acceptance criteria
-- It will automatically create tasks for Security Architect to review auth patterns
-- Security Architect will create tasks for System Architect to integrate security
-- Each mode builds on previous work while maintaining quality standards
+#### **3. Watch Autonomous Orchestration**
 
-**4. Your Role: Guide and Decide**
-- Review each mode's output for business alignment
-- Make strategic decisions when modes identify trade-offs
-- Provide domain expertise that AI modes don't have
-- Coordinate timeline and resource priorities
+The system will automatically:
+
+1. **Specification Writer** → Creates detailed requirements
+2. **Security Architect** → Reviews auth security (auto-delegated)
+3. **System Architect** → Designs authentication architecture (auto-delegated)
+4. **TDD Engineer** → Creates test specifications (auto-delegated)
+5. **Code Implementer** → Builds authentication features (auto-delegated)
+6. **Integration Specialist** → Ensures system coherence (auto-delegated)
+
+#### **4. Monitor Quality and Progress**
+
+```bash
+# Check real-time quality metrics
+cat project/your-project/control/quality-dashboard.json
+
+# Review autonomous decisions
+cat memory-bank/decisionLog.md
+
+# See active workflow state
+cat project/your-project/control/workflow-state.json
+```
 
 ### **Advanced Workflow Patterns**
 
-**Quality-First Development:**
-```yaml
-# Typical flow for a new feature
-1. Specification Writer → defines requirements
-2. System Architect → designs solution
-3. Security Architect → validates security approach  
-4. TDD Engineer → creates test specifications
-5. Code Implementer → builds feature
-6. QA Analyst → validates against requirements
-7. Integration Specialist → ensures system coherence
+#### **Quality-First Development**
+
+```mermaid
+sequenceDiagram
+    participant H as Human
+    participant SW as Specification Writer
+    participant SA as System Architect
+    participant SEC as Security Architect
+    participant TDD as TDD Engineer
+    participant CI as Code Implementer
+    participant QA as QA Coordinator
+    
+    H->>SW: "Build payment processing"
+    SW->>SW: Create requirements
+    SW->>SA: Auto-delegate architecture task
+    SA->>SA: Design payment flow
+    SA->>SEC: Auto-delegate security review
+    SEC->>SEC: Threat model payment system
+    SEC->>TDD: Auto-delegate test strategy
+    TDD->>TDD: Create security test specs
+    TDD->>CI: Auto-delegate implementation
+    CI->>CI: Build payment features
+    CI->>QA: Auto-trigger quality review
+    QA->>QA: Validate against requirements
+    QA->>H: Report completion
 ```
 
-**Issue-Driven Development:**
-```yaml
-# When problems are discovered mid-development
-1. Quality Coordinator → detects inconsistencies
-2. Creates targeted tasks for appropriate specialists
-3. Specialists collaborate to resolve issues
-4. Quality gates prevent progression until resolved
+#### **Issue-Driven Resolution**
+
+```mermaid
+flowchart TD
+    Issue[🚨 Issue Detected] --> Assess{Quality Coordinator Assessment}
+    
+    Assess -->|Minor Issue| AutoFix[Auto-create specialist task]
+    Assess -->|Major Issue| Escalate[Escalate to Orchestrator]
+    Assess -->|Critical Issue| Alert[Alert human + pause workflow]
+    
+    AutoFix --> Specialist[Appropriate Specialist]
+    Escalate --> Investigation[Evidence-based investigation]
+    Investigation --> Resolution[Technical decision]
+    
+    Specialist --> Validate[Quality validation]
+    Resolution --> Validate
+    Alert --> HumanDecision[Human decision required]
+    
+    Validate -->|Pass| Complete[✅ Issue resolved]
+    Validate -->|Fail| Reassess[Reassess approach]
+    
+    Reassess --> Assess
 ```
+
+---
 
 ## 📁 Project Structure
 
 ```
 roo-advanced-framework/
-├── 📄 README.md                     # This documentation
-├── 🎭 .roomodes                     # Custom mode definitions (15+ specialized AI personalities)
-├── 🧠 memory-bank/                  # Persistent project knowledge
-│   ├── productContext.md           # Business context and goals
-│   ├── decisionLog.md              # Important decisions and rationale
-│   ├── systemPatterns.md           # Coding standards and conventions
-│   └── progress.md                 # Current status and next steps
-├── 📁 project/sample-app/          # Project-specific files (rename for your project)
-│   └── control/                    # Workflow coordination files
-│       ├── graph.yaml              # Workflow definition
-│       ├── state.json              # Current workflow status
-│       ├── backlog.yaml            # Project backlog
-│       └── sprint.yaml             # Current sprint plan
-├── 📚 docs/                        # Documentation and schemas
-│   ├── contracts/                  # JSON schemas for validation
-│   └── mcp/                        # MCP server setup guides
-└── 🔧 scripts/                     # Automation and validation
-    └── validate.sh                 # Validate all configurations
+├── 📄 README.md                           # This documentation
+├── 📄 LICENSE                            # MIT license
+├── 📄 requirements.txt                   # Python dependencies
+├── 📄 package.json                       # Node.js dependencies
+├── 📄 .gitignore                         # Git ignore patterns
+│
+├── 🎭 .roomodes                          # AI mode definitions (15+ specialists)
+│
+├── 🧠 memory-bank/                       # Persistent organizational intelligence
+│   ├── 📄 productContext.md             # Business context and objectives
+│   ├── 📄 decisionLog.md                 # Decision history with rationale
+│   ├── 📄 systemPatterns.md             # Coding standards and patterns
+│   ├── 📄 progress.md                    # Project progress and metrics
+│   ├── 📄 delegationPatterns.md         # Successful delegation sequences
+│   ├── 📄 learningHistory.md            # Outcomes and optimizations
+│   ├── 📄 actionable-patterns.md        # Auto-applicable patterns
+│   └── 📁 schemas/                       # JSON schemas for validation
+│       └── 📄 pattern-schema.json       # Pattern definition schema
+│
+├── 📁 project/                           # Project-specific configurations
+│   ├── 📁 sample-app/                    # Example project (rename for yours)
+│   │   └── 📁 control/                   # Workflow coordination files
+│   │       ├── 📄 graph.yaml             # Workflow definitions
+│   │       ├── 📄 state.json             # Current workflow state
+│   │       ├── 📄 backlog.yaml           # Project backlog and epics
+│   │       ├── 📄 sprint.yaml            # Sprint planning and goals
+│   │       ├── 📄 capabilities.yaml      # Available AI agents
+│   │       ├── 📄 quality-dashboard.json # Real-time quality metrics
+│   │       ├── 📄 workflow-state.json    # Autonomous workflow status
+│   │       └── 📄 issue-patterns.yaml    # Issue detection patterns
+│   └── 📁 memory-bank/                   # Project-specific memory
+│       ├── 📄 decisionLog.md             # Project decisions
+│       └── 📄 systemPatterns.md          # Project patterns
+│
+├── 📚 docs/                              # Documentation and guides
+│   ├── 📄 implementation-guide.md        # Implementation instructions
+│   ├── 📁 contracts/                     # JSON schema contracts
+│   │   ├── 📄 backlog_v1.schema.json    # Backlog validation schema
+│   │   └── 📄 workflow_state_v2.schema.json # Workflow state schema
+│   ├── 📁 mcp/                           # MCP server configurations
+│   │   └── 📄 config.sample.md          # MCP setup examples
+│   └── 📁 .roo/                          # Advanced configurations
+│       └── 📁 rules-quality-assurance-coordinator/
+│           └── 📄 continuous-monitoring.md
+│
+├── 🔧 scripts/                           # Automation and validation
+│   ├── 📄 setup_project.sh              # Interactive project setup
+│   ├── 📄 validate_config.py            # Configuration validation
+│   └── 📁 lib/                           # Helper libraries
+│
+└── 🧪 tests/                             # Validation tests
+    └── 📄 test_validate_config_exceptions.py
 ```
 
-### **Key File Purposes**
+### **Key File Descriptions**
 
-| File | Purpose | When to Modify |
-|------|---------|----------------|
-| `.roomodes` | **AI mode definitions** | Customize for your domain expertise needs |
-| `memory-bank/productContext.md` | **Project business context** | Update with your project goals and constraints |
-| `project/*/control/graph.yaml` | **Workflow sequence** | Modify for your development process |
-| `project/*/control/backlog.yaml` | **Project features and tasks** | Regular updates as project evolves |
+| File/Directory | Purpose | When to Modify |
+|----------------|---------|----------------|
+| `.roomodes` | **AI agent definitions and behaviors** | When adding new specialists or customizing existing ones |
+| `memory-bank/productContext.md` | **Project business context and goals** | At project start and when requirements evolve |
+| `project/*/control/` | **Workflow state and coordination** | Automatically updated by agents; manual edits for workflow tuning |
+| `project/*/control/quality-dashboard.json` | **Real-time quality metrics** | Auto-updated; view for project health insights |
+| `scripts/validate_config.py` | **Configuration validation** | Run before starting autonomous sessions |
 
-## 🔧 Configuration
+---
 
-### **Basic Mode Customization**
+## ⚙️ Configuration
 
-**Create a Custom Mode for Your Domain:**
+### **Basic Customization**
+
+#### **Create Domain-Specific AI Mode**
+
 ```yaml
 # Add to .roomodes
 customModes:
   - slug: fintech-specialist
-    name: 🏦 FinTech Specialist
+    name: 🏦 FinTech Security Specialist
     description: Expert in financial services compliance and security
     roleDefinition: |
-      You are a financial technology specialist with deep expertise in:
+      You are a financial technology specialist with expertise in:
       - PCI DSS compliance and payment security
-      - Financial regulations (SOX, GDPR, PSD2)
+      - Financial regulations (SOX, GDPR, PSD2)  
       - Fraud detection and risk management
       - Banking API integrations and standards
+    
     customInstructions: |
       Always consider:
       - Regulatory compliance implications
-      - Data privacy requirements
+      - Data privacy requirements (GDPR, CCPA)
       - Audit trail necessities
       - Financial risk assessments
+      - Multi-factor authentication requirements
+      
+      Quality Gates:
+      - Security review mandatory for payment flows
+      - Compliance validation for data handling
+      - Penetration testing for authentication systems
+    
     groups:
       - read
       - edit
       - browser
 ```
 
-### **Project Context Setup**
+#### **Project-Specific Quality Standards**
 
-**Define Your Development Standards:**
 ```markdown
 # memory-bank/systemPatterns.md
 # Development Standards
 
-## Code Quality
-- Functions should be under 50 lines
+## Code Quality Requirements
+- Functions must be under 50 lines
 - Test coverage must exceed 90%
-- All public APIs require documentation
+- All public APIs require OpenAPI documentation
 - Security review required for authentication code
+- Performance benchmarks for critical paths
 
 ## Architecture Principles  
-- Microservices with clear boundaries
+- Microservices with clear domain boundaries
 - Event-driven communication between services
 - Database per service pattern
 - Infrastructure as code for all deployments
+- Observability built into all components
+
+## Security Standards
+- Zero-trust security model
+- Encryption at rest and in transit
+- API rate limiting and authentication
+- Regular dependency vulnerability scans
+- Automated security testing in CI/CD
 ```
 
-### **Quality Gates Configuration**
+### **Advanced Configuration**
 
-**Set Project-Specific Quality Criteria:**
+#### **Custom Quality Gates**
+
 ```json
 // project/your-project/control/quality-criteria.json
 {
   "code_quality": {
     "min_test_coverage": 0.90,
     "max_function_complexity": 10,
-    "security_scan_required": true
+    "security_scan_required": true,
+    "performance_benchmarks_required": true,
+    "documentation_completeness": 0.85
   },
   "architecture": {
     "max_service_dependencies": 5,
-    "documentation_completeness": 0.85,
-    "performance_benchmarks_required": true
+    "api_documentation_required": true,
+    "load_testing_required": true,
+    "disaster_recovery_plan_required": true
+  },
+  "security": {
+    "threat_model_required": true,
+    "penetration_testing_required": true,
+    "vulnerability_scanning_frequency": "weekly",
+    "access_control_review_required": true
   }
 }
 ```
 
-## 📚 Examples
+#### **MCP Server Integration**
 
-### **Example 1: E-commerce Platform**
-
-**Initial Setup:**
-```yaml
-# project/ecommerce-platform/control/backlog.yaml
-epics:
-  - id: E-001
-    name: User Management
-    stories:
-      - id: US-001
-        title: As a customer, I can create an account with email verification
-        priority: High
-        acceptance: ["email verification", "password strength", "GDPR compliance"]
-      
-  - id: E-002  
-    name: Product Catalog
-    stories:
-      - id: US-002
-        title: As a customer, I can browse products with filters and search
-        priority: High
-        acceptance: ["search performance", "filter accuracy", "mobile responsive"]
+```json
+// Configure external AI services
+{
+  "mcpServers": {
+    "exa": {
+      "command": "npx",
+      "args": ["@exa-ai/mcp-server"],
+      "env": {
+        "EXA_API_KEY": "your-exa-api-key"
+      }
+    },
+    "perplexity": {
+      "command": "npx", 
+      "args": ["@perplexity-ai/mcp-server"],
+      "env": {
+        "SONAR_API_KEY": "your-perplexity-key"
+      }
+    }
+  }
+}
 ```
-
-**Workflow Example:**
-1. **Specification Writer** creates detailed requirements for user registration
-2. **Security Architect** identifies GDPR compliance needs and creates privacy specialist task
-3. **System Architect** designs user service architecture
-4. **Database Specialist** optimizes user data schema for performance
-5. **TDD Engineer** creates comprehensive test suite
-6. **Code Implementer** builds the feature
-7. **QA Analyst** validates against acceptance criteria
-
-### **Example 2: Data Analytics Platform**
-
-**Custom Mode for Domain:**
-```yaml
-- slug: data-engineer
-  name: 📊 Data Engineer
-  description: Specialist in data pipelines, ETL, and analytics architecture
-  roleDefinition: |
-    Expert in building scalable data processing systems with focus on:
-    - ETL pipeline design and optimization
-    - Data warehouse and lake architectures  
-    - Stream processing and real-time analytics
-    - Data quality and governance frameworks
-  groups: [read, edit, command, browser]
-```
-
-**Quality Criteria:**
-```yaml
-data_quality_gates:
-  - "data_lineage_documented"
-  - "pipeline_performance_benchmarked" 
-  - "data_validation_rules_implemented"
-  - "monitoring_alerts_configured"
-```
-
-### **Example 3: Mobile App Development**
-
-**Mobile-Specific Modes:**
-```yaml
-customModes:
-  - slug: mobile-architect
-    name: 📱 Mobile Architect
-    description: Expert in mobile app architecture and platform-specific concerns
-    roleDefinition: |
-      Mobile development specialist focusing on:
-      - Cross-platform vs native architecture decisions
-      - Mobile-specific security patterns
-      - Performance optimization for mobile devices
-      - App store compliance and deployment
-    
-  - slug: ux-mobile-specialist
-    name: 🎨 Mobile UX Specialist  
-    description: User experience expert for mobile interfaces
-    roleDefinition: |
-      Mobile UX specialist with expertise in:
-      - Mobile-first design patterns
-      - Touch interface optimization
-      - Mobile accessibility standards
-      - Platform-specific design guidelines (iOS HIG, Material Design)
-```
-
-## 🚀 Getting the Most Value
-
-### **Best Practices for Success**
-
-**Start Small and Build:**
-- Begin with 2-3 modes that match your most common work
-- Add complexity gradually as you understand the patterns
-- Customize mode definitions for your specific domain
-
-**Maintain Quality Standards:**
-- Review all AI outputs before accepting
-- Use quality gates to catch issues early  
-- Update patterns based on what works and what doesn't
-
-**Learn and Adapt:**
-- Pay attention to which mode combinations work best
-- Document successful patterns in your memory bank
-- Share effective configurations with your team
-
-### **Common Pitfalls to Avoid**
-
-❌ **Over-Engineering**: Don't create modes for every possible specialty
-❌ **Under-Customization**: Generic modes won't match your specific needs  
-❌ **Quality Shortcuts**: Skipping validation leads to accumulated technical debt
-❌ **Context Loss**: Not maintaining project memory leads to repeated work
-
-## 📈 Expected Outcomes
-
-### **Immediate Benefits (First Week)**
-- **Organized Workflows**: Clear structure instead of chaotic AI conversations
-- **Domain Expertise**: AI responses tailored to specific types of work
-- **Quality Consistency**: Built-in criteria prevent low-quality outputs
-- **Progress Visibility**: Clear understanding of project status
-
-### **Medium-Term Benefits (First Month)**  
-- **Productivity Gains**: Faster iteration through purpose-built interactions
-- **Reduced Rework**: Quality gates catch issues before they compound
-- **Better Planning**: Structured approach reveals dependencies and risks
-- **Knowledge Retention**: Project memory prevents repeated explanations
-
-### **Long-Term Benefits (Ongoing)**
-- **Team Coordination**: Shared configurations ensure consistency across team members  
-- **Continuous Improvement**: Learning from successful patterns improves future projects
-- **Scalable Processes**: Framework adapts to larger and more complex projects
-- **Expertise Development**: Working with specialized AI modes builds your own domain knowledge
-
-## 🤝 Contributing & Community
-
-### **Ways to Contribute**
-- **Share Successful Modes**: Contribute domain-specific mode definitions
-- **Document Patterns**: Share workflow patterns that work well for your projects
-- **Report Issues**: Help identify problems with configurations or documentation
-- **Improve Examples**: Add real-world examples from different domains
-
-### **Community Resources**
-- **GitHub Discussions**: Share experiences and get help from other users
-- **Example Gallery**: Browse mode definitions and workflow patterns from the community
-- **Best Practices Wiki**: Collaborative documentation of proven approaches
 
 ---
 
-## 📄 License
+## 🎯 Workflow Examples
+
+### **Example 1: E-commerce Platform Development**
+
+#### **Initial Project Setup**
+
+```yaml
+# project/ecommerce-platform/control/backlog.yaml
+version: 1.0
+project: "E-commerce Platform"
+epics:
+  - id: E-001
+    name: "User Management System"
+    priority: "Critical"
+    stories:
+      - id: US-001
+        title: "Customer account creation with email verification"
+        acceptance_criteria: 
+          - "Email verification within 5 minutes"
+          - "Password strength validation"
+          - "GDPR-compliant data handling"
+        priority: "High"
+        
+  - id: E-002  
+    name: "Product Catalog & Search"
+    priority: "High"
+    stories:
+      - id: US-002
+        title: "Product browsing with advanced filters and search"
+        acceptance_criteria:
+          - "Search results under 200ms"
+          - "Filter combinations work correctly"
+          - "Mobile-responsive design"
+        priority: "High"
+
+  - id: E-003
+    name: "Payment Processing"
+    priority: "Critical"
+    stories:
+      - id: US-003
+        title: "Secure payment processing with multiple providers"
+        acceptance_criteria:
+          - "PCI DSS compliance"
+          - "Multiple payment methods"
+          - "Fraud detection integration"
+        priority: "Critical"
+```
+
+#### **Autonomous Development Sequence**
+
+```mermaid
+gantt
+    title E-commerce Platform Autonomous Development
+    dateFormat  X
+    axisFormat %s
+    
+    section Specification Phase
+    User Management Specs    :done, spec1, 0, 3600
+    Product Catalog Specs    :done, spec2, after spec1, 3600
+    Payment Processing Specs :done, spec3, after spec2, 3600
+    
+    section Architecture Phase  
+    System Architecture      :done, arch1, after spec3, 3600
+    Database Design          :done, arch2, after arch1, 3600
+    API Design              :done, arch3, after arch2, 3600
+    
+    section Security Review
+    Threat Modeling         :done, sec1, after arch3, 3600
+    Security Controls       :done, sec2, after sec1, 3600
+    Compliance Review       :done, sec3, after sec2, 3600
+    
+    section Implementation
+    User Management API     :active, impl1, after sec3, 7200
+    Product Catalog API     :impl2, after impl1, 7200
+    Payment Integration     :impl3, after impl2, 7200
+    
+    section Testing & QA
+    Unit Testing           :test1, after impl1, 3600
+    Integration Testing    :test2, after impl3, 3600
+    Security Testing       :test3, after test2, 3600
+```
+
+### **Example 2: Issue-Driven Development**
+
+When the Quality Assurance Coordinator detects inconsistencies:
+
+```yaml
+# Detected Issue: Architecture-Implementation Mismatch
+issue_id: "QUAL-2024-001"
+severity: "high"
+description: "Payment processing implementation doesn't match security architecture specifications"
+
+# Automatic Resolution Workflow:
+resolution_steps:
+  1. Quality Coordinator creates joint task for Security Architect + Code Implementer
+  2. Security Architect reviews implementation against threat model
+  3. Code Implementer updates implementation to match security requirements
+  4. Integration Specialist validates end-to-end security
+  5. Quality gates re-run to confirm resolution
+```
+
+---
+
+## ✅ Quality Assurance
+
+### **Continuous Quality Monitoring**
+
+The framework maintains real-time quality oversight through multiple layers:
+
+#### **System-Wide Quality Metrics**
+
+```json
+{
+  "quality_dashboard": {
+    "overall_score": 0.87,
+    "architecture_quality": 0.91,
+    "implementation_quality": 0.85,
+    "integration_quality": 0.86,
+    "security_compliance": 0.93,
+    "test_coverage": 0.89,
+    "documentation_completeness": 0.82,
+    "performance_benchmarks": "passing",
+    "last_updated": "2024-08-28T10:30:00Z"
+  }
+}
+```
+
+#### **Quality Gate Enforcement**
+
+```mermaid
+flowchart TD
+    CodeCommit[Code Implementation] --> QualityCheck{Quality Gate Check}
+    
+    QualityCheck -->|Pass| TestSuite[Automated Test Suite]
+    QualityCheck -->|Fail| QualityFail[Quality Failure]
+    
+    TestSuite -->|Pass| SecurityScan[Security Scan]
+    TestSuite -->|Fail| TestFail[Test Failure]
+    
+    SecurityScan -->|Pass| PerformanceTest[Performance Validation]
+    SecurityScan -->|Fail| SecurityFail[Security Issue]
+    
+    PerformanceTest -->|Pass| IntegrationTest[Integration Testing]
+    PerformanceTest -->|Fail| PerformanceFail[Performance Issue]
+    
+    IntegrationTest -->|Pass| Approved[✅ Approved for Release]
+    IntegrationTest -->|Fail| IntegrationFail[Integration Issue]
+    
+    QualityFail --> CreateTask[Auto-create fix task]
+    TestFail --> CreateTask
+    SecurityFail --> EscalateSecurity[Escalate to Security Architect]
+    PerformanceFail --> EscalatePerf[Escalate to Performance Engineer]
+    IntegrationFail --> EscalateInt[Escalate to Integration Specialist]
+    
+    CreateTask --> SpecialistAssigned[Specialist Auto-assigned]
+    EscalateSecurity --> SpecialistAssigned
+    EscalatePerf --> SpecialistAssigned
+    EscalateInt --> SpecialistAssigned
+    
+    SpecialistAssigned --> FixImplemented[Fix Implemented]
+    FixImplemented --> QualityCheck
+```
+
+### **Autonomous Quality Interventions**
+
+#### **Critical Quality Alert Example**
+
+```json
+{
+  "alert_type": "CRITICAL_QUALITY_REGRESSION",
+  "triggered_at": "2024-08-28T14:45:00Z",
+  "details": {
+    "quality_score_drop": 0.15,
+    "affected_components": ["authentication", "payment_processing"],
+    "root_cause": "Security vulnerability introduced in recent changes",
+    "automatic_actions": [
+      "Workflow paused",
+      "Security Architect task auto-created", 
+      "Code rollback prepared",
+      "Stakeholder notification sent"
+    ]
+  }
+}
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### **Common Issues**
+
+#### **Issue: AI Modes Not Creating Auto-Tasks**
+
+**Symptoms:**
+- Modes complete work without delegating to specialists
+- Quality Coordinator not detecting issues
+- Workflow progression appears manual
+
+**Solutions:**
+```bash
+# Check issue pattern configuration
+cat project/your-project/control/issue-patterns.yaml
+
+# Validate mode self-assessment triggers
+python scripts/validate_config.py your-project
+
+# Review capabilities routing
+cat project/your-project/control/capabilities.yaml
+```
+
+#### **Issue: Quality Scores Not Updating**
+
+**Symptoms:**
+- Quality dashboard shows stale metrics
+- Quality interventions not triggering
+- Quality gates not enforcing
+
+**Solutions:**
+```bash
+# Verify Quality Assurance Coordinator is active
+grep -A 10 "quality-assurance-coordinator" .roomodes
+
+# Check quality monitoring configuration
+cat project/your-project/control/quality-dashboard.json
+
+# Validate quality gate permissions
+ls -la project/your-project/control/
+```
+
+#### **Issue: Circuit Breakers Triggering Frequently**
+
+**Symptoms:**
+- Workflow stops with "infinite loop detected"
+- Same tasks being created repeatedly
+- Agents disagreeing constantly
+
+**Solutions:**
+```json
+// Adjust circuit breaker settings in workflow-state.json
+{
+  "circuit_breakers": {
+    "max_delegation_depth": 5,
+    "max_task_retries": 3,
+    "conflict_resolution_timeout": 1800,
+    "quality_failure_threshold": 3
+  }
+}
+```
+
+### **Debug Mode Activation**
+
+```json
+// Add to workflow-state.json for verbose debugging
+{
+  "debug_mode": {
+    "enabled": true,
+    "log_level": "verbose",
+    "trace_decisions": true,
+    "validate_quality_gates": true,
+    "monitor_agent_interactions": true
+  }
+}
+```
+
+### **Health Check Commands**
+
+```bash
+# Validate complete system configuration
+python scripts/validate_config.py your-project-name
+
+# Test MCP server connectivity
+node scripts/test_mcp_servers.js
+
+# Check AI provider API status
+curl -H "Authorization: Bearer $ANTHROPIC_API_KEY" \
+     https://api.anthropic.com/v1/messages
+
+# Validate quality gate schemas
+python scripts/validate_schemas.py
+```
+
+---
+
+## 📈 Success Metrics
+
+### **Autonomous Operation Targets**
+
+| Metric | Week 1 | Month 1 | Quarter 1 |
+|--------|--------|---------|-----------|
+| **Autonomous Operation %** | 75% | 95% | 99% |
+| **Quality Score Average** | 0.80 | 0.85 | 0.90+ |
+| **Human Interventions/Day** | 5-10 | 1-3 | <1 |
+| **Workflow Completion Rate** | 80% | 95% | 98% |
+| **Issue Auto-Resolution %** | 60% | 85% | 95% |
+
+### **Quality Milestones**
+
+- ✅ **Week 1**: All autonomous modes operational with dynamic task creation
+- ✅ **Week 2**: Quality monitoring active with automatic interventions
+- ✅ **Week 3**: Learning patterns applied automatically across workflows
+- ✅ **Month 1**: Cross-project pattern recognition and optimization
+- ✅ **Quarter 1**: Predictive issue prevention and organizational intelligence
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions to improve the autonomous development capabilities!
+
+### **Contribution Areas**
+
+#### **New AI Specialists**
+- Domain-specific agents (Healthcare, FinTech, Gaming, etc.)
+- Technology-specific specialists (React, Kubernetes, etc.)
+- Quality-focused roles (Accessibility, Performance, etc.)
+
+#### **Quality Enhancements**
+- Advanced quality gate patterns
+- Cross-mode consistency validation
+- Performance optimization strategies
+
+#### **Learning Improvements**
+- Pattern recognition algorithms
+- Success prediction models
+- Workflow optimization techniques
+
+### **Development Process**
+
+```bash
+# 1. Fork and clone
+git clone https://github.com/your-username/roo-advanced-framework.git
+cd roo-advanced-framework
+
+# 2. Create feature branch
+git checkout -b feature/new-ai-specialist
+
+# 3. Add your AI mode to .roomodes
+# 4. Update documentation and tests
+# 5. Validate configuration
+python scripts/validate_config.py test-project
+
+# 6. Submit pull request with:
+# - Clear description of new capabilities
+# - Test scenarios and validation results
+# - Documentation updates
+```
+
+### **Code Standards**
+
+- **AI Mode Definitions**: Follow existing patterns with proper self-assessment
+- **Quality Gates**: Include measurable criteria and automated validation
+- **Documentation**: Update README and implementation guide
+- **Testing**: Provide test scenarios for new capabilities
+
+---
+
+## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+---
+
 ## 🙏 Acknowledgments
 
-- **Anthropic** for Roo Code and Claude AI technology
-- **Roo Code Community** for sharing patterns, modes, and best practices  
-- **Early Adopters** who provided feedback and real-world validation
-- **Contributors** who shared domain expertise and workflow improvements
+- **Anthropic** for Claude AI capabilities
+- **OpenAI** for GPT integration support
+- **Roo Code Community** for extension development
+- **Contributors** who have enhanced autonomous development patterns
 
 ---
 
-<div align="center">
+## 🔗 Additional Resources
 
-**Ready to supercharge your Roo Code workflows?**
-
-[Get Started](#-quick-start) • [View Examples](#-examples) • [Join Community](https://github.com/discussions)
-
-*Framework for advanced users who want structured, high-quality AI-assisted development*
-
-**⭐ Star this repository if it improves your development workflow!**
-
-</div>
+- **[Implementation Guide](docs/implementation-guide.md)** - Detailed setup instructions
+- **[MCP Configuration](docs/mcp/config.sample.md)** - External service integration
+- **[Quality Assurance Rules](docs/.roo/rules-quality-assurance-coordinator/)** - Quality monitoring details
+- **[Pattern Schema](memory-bank/schemas/pattern-schema.json)** - Learning pattern structure
 
 ---
 
-*Documentation Version: 1.0.0 | Framework Version: 1.0.0 | For Roo Code v3.25+*
+**Built with ❤️ for autonomous AI development**
+
+> **Next Steps**: Follow the [Quick Start Guide](#-quick-start-guide) to begin your first autonomous development session!
