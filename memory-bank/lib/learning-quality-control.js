@@ -368,36 +368,35 @@ class LearningQualityControl {
     }
   }
 
-  /**
-   * Detect anomalies in quality metrics and create follow-up tasks
+  /** Detect anomalies in quality metrics and record corrective tasks.
    * @param {{gate_type:string, overall_score:number, timestamp:string}} metrics
    * @returns {Promise<string|false>} task id when anomaly logged
    * @throws {QualityAnomalyError}
    */
   async detectQualityAnomalies(metrics) {
-    if (!validateMetrics(metrics)) {
-      throw new QualityAnomalyError('Invalid metrics input');
-    }
-    const key = `${this.modeName}_${metrics.gate_type}`,
-      prev = this.qualityMetrics.get(key);
-    if (
-      !prev ||
-      Math.abs(metrics.overall_score - prev.overall_score) / (prev.overall_score || 1) <= 0.1 ||
-      Math.abs(new Date(metrics.timestamp) - new Date(prev.timestamp)) > 86400000
-    ) {
-      return false;
-    }
-    const dashboard = process.env.QUALITY_DASHBOARD_PATH;
-    for (let i = 0; i < 3; i++) {
+    if (!validateMetrics(metrics)) throw new QualityAnomalyError('Invalid metrics input');
+    const key = `${this.modeName}_${metrics.gate_type}`, prev = this.qualityMetrics.get(key);
+    const recent = prev && Math.abs(new Date(metrics.timestamp) - new Date(prev.timestamp)) <= 86400000;
+    const deviates = prev && Math.abs(metrics.overall_score - prev.overall_score) / (prev.overall_score || 1) > 0.1;
+    if (!prev || !recent || !deviates) return false;
+    const dash = process.env.QUALITY_DASHBOARD_PATH, flow = process.env.WORKFLOW_STATE_PATH;
+    if (!dash || !flow) throw new QualityAnomalyError('Quality file paths not set');
+    const task = { task_id: `task_${Date.now()}`, mode: 'quality-coordinator', status: 'pending',
+      objective: 'Investigate quality anomaly', priority: 'high',
+      created_by: this.modeName, created_at: new Date().toISOString(), context: { metrics } };
+    for (let i = 0; i < 3; i++)
       try {
-        await updateDashboard(dashboard, metrics);
-        const id = await this.workflowHelpers.createQualityTask('metric anomaly', { metrics });
-        return id;
+        const d = JSON.parse(await withTimeout(fs.readFile(dash, 'utf8').catch(() => '{}')));
+        (d.predictive_quality_indicators ??= []).push({ warning: 'metric anomaly', metrics });
+        await withTimeout(fs.writeFile(dash, JSON.stringify(d, null, 2)));
+        const w = JSON.parse(await withTimeout(fs.readFile(flow, 'utf8').catch(() => '{}')));
+        (w.active_tasks ??= []).push(task);
+        await withTimeout(fs.writeFile(flow, JSON.stringify(w, null, 2)));
+        return task.task_id;
       } catch (err) {
         if (i === 2) throw new QualityAnomalyError('Failed to record anomaly', err);
         await new Promise(r => setTimeout(r, 100));
       }
-    }
   }
 
   /**
