@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 const LearningQualityControl = require('../memory-bank/lib/learning-quality-control');
 
-test('detectQualityAnomalies logs anomalies and updates control files', async () => {
+test('detectQualityAnomalies logs anomalies and creates quality task', async () => {
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'quality-'));
   const dashboard = path.join(tmp, 'quality-dashboard.json');
   const workflow = path.join(tmp, 'workflow-state.json');
@@ -29,12 +29,12 @@ test('detectQualityAnomalies logs anomalies and updates control files', async ()
     overall_score: 0.7,
     timestamp: new Date().toISOString()
   };
-  const anomaly = await qc.detectQualityAnomalies(metrics);
-  assert.equal(anomaly, true);
+  const taskId = await qc.detectQualityAnomalies(metrics);
+  assert.match(taskId, /^task_\d+/);
   const dash = JSON.parse(await fs.readFile(dashboard, 'utf8'));
   assert.ok(Array.isArray(dash.predictive_quality_indicators));
   const flow = JSON.parse(await fs.readFile(workflow, 'utf8'));
-  assert.ok(flow.tasks.find((t) => t.assignee === 'Quality Coordinator' && t.priority === 'high'));
+  assert.ok(flow.active_tasks.find(t => t.task_id === taskId));
 });
 
 test('detectQualityAnomalies returns false for minor deviations', async () => {

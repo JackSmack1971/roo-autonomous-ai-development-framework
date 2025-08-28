@@ -48,3 +48,21 @@ test('confidence adjusts with successes and failures', async () => {
   record = await helper.patternStorage.getPattern(patternId);
   assert.equal(record.confidence_score, 0.1);
 });
+
+test('createQualityTask records tasks and returns id', async () => {
+  const helper = await setupHelper();
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'wf-'));
+  const workflow = path.join(tmp, 'workflow-state.json');
+  await fs.writeFile(workflow, '{}');
+  process.env.WORKFLOW_STATE_PATH = workflow;
+  const id = await helper.createQualityTask('need review', { severity: 'high' });
+  const flow = JSON.parse(await fs.readFile(workflow, 'utf8'));
+  const task = flow.active_tasks.find(t => t.task_id === id);
+  assert.equal(task.objective, 'need review');
+  assert.equal(task.context.severity, 'high');
+});
+
+test('createQualityTask validates inputs', async () => {
+  const helper = await setupHelper();
+  await assert.rejects(() => helper.createQualityTask('', {}), /Invalid warning/);
+});

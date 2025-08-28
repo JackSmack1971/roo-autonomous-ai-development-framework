@@ -5,6 +5,7 @@
  * Provides reusable functions for common learning integration scenarios
  */
 
+const fs = require('fs/promises');
 const LearningProtocolClient = require('./learning-protocol-client');
 const PatternStorage = require('./pattern-storage');
 
@@ -12,6 +13,13 @@ class PatternStatsUpdateError extends Error {
   constructor(message) {
     super(message);
     this.name = 'PatternStatsUpdateError';
+  }
+}
+
+class TaskCreationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'TaskCreationError';
   }
 }
 
@@ -94,6 +102,48 @@ class LearningWorkflowHelpers {
     } catch (error) {
       console.warn(`⚠️ [${this.modeName}] Failed to log learning outcome: ${error.message}`);
       return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Create a quality follow-up task with retry and timeout safeguards
+   * Stored in workflow state's `active_tasks` per workflow_state_v2 schema
+   * @param {string} warning
+   * @param {object} context
+   * @returns {Promise<string>} task identifier
+   * @throws {TaskCreationError}
+   */
+  async createQualityTask(warning, context = {}) {
+    if (typeof warning !== 'string' || !warning.trim()) throw new TaskCreationError('Invalid warning');
+    if (!context || typeof context !== 'object') throw new TaskCreationError('Invalid context');
+    const file = process.env.WORKFLOW_STATE_PATH;
+    if (!file) throw new TaskCreationError('WORKFLOW_STATE_PATH not set');
+    const task = {
+      task_id: `task_${Date.now()}`,
+      mode: 'quality-coordinator',
+      status: 'pending',
+      objective: warning.trim(),
+      created_by: this.modeName,
+      created_at: new Date().toISOString(),
+      priority: 'high',
+      context,
+    };
+    const attempt = async () => {
+      const data = JSON.parse(await fs.readFile(file, 'utf8').catch(() => '{}'));
+      (data.active_tasks ??= []).push(task);
+      await fs.writeFile(file, JSON.stringify(data, null, 2));
+      return task.task_id;
+    };
+    for (let i = 0; i < 3; i++) {
+      try {
+        return await Promise.race([
+          attempt(),
+          new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 2000)),
+        ]);
+      } catch (err) {
+        if (i === 2) throw new TaskCreationError(`Failed to create quality task: ${err.message}`);
+        await new Promise(r => setTimeout(r, 100));
+      }
     }
   }
 

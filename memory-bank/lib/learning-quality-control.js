@@ -31,19 +31,11 @@ const validateMetrics = (m) =>
   m.overall_score >= 0 &&
   m.overall_score <= 1;
 
-const updateControlFiles = async (dashboard, workflow, metrics) => {
+// Writes anomaly warnings to the quality dashboard; task creation handled separately
+const updateDashboard = async (dashboard, metrics) => {
   const dash = dashboard && JSON.parse(await withTimeout(fs.readFile(dashboard, 'utf8')));
-  const flow = workflow && JSON.parse(await withTimeout(fs.readFile(workflow, 'utf8')));
   (dash.predictive_quality_indicators ??= []).push({ warning: 'metric anomaly', metrics });
-  (flow.tasks ??= []).push({
-    assignee: 'Quality Coordinator',
-    priority: 'high',
-    task: 'Investigate metric anomaly',
-  });
-  await Promise.all([
-    withTimeout(fs.writeFile(dashboard, JSON.stringify(dash, null, 2))),
-    withTimeout(fs.writeFile(workflow, JSON.stringify(flow, null, 2)))
-  ]);
+  await withTimeout(fs.writeFile(dashboard, JSON.stringify(dash, null, 2)));
 };
 
 class LearningQualityControl {
@@ -377,9 +369,9 @@ class LearningQualityControl {
   }
 
   /**
-   * Detect anomalies in quality metrics
+   * Detect anomalies in quality metrics and create follow-up tasks
    * @param {{gate_type:string, overall_score:number, timestamp:string}} metrics
-   * @returns {Promise<boolean>} true if anomaly logged
+   * @returns {Promise<string|false>} task id when anomaly logged
    * @throws {QualityAnomalyError}
    */
   async detectQualityAnomalies(metrics) {
@@ -395,15 +387,15 @@ class LearningQualityControl {
     ) {
       return false;
     }
-    const dashboard = process.env.QUALITY_DASHBOARD_PATH,
-      workflow = process.env.WORKFLOW_STATE_PATH;
+    const dashboard = process.env.QUALITY_DASHBOARD_PATH;
     for (let i = 0; i < 3; i++) {
       try {
-        await updateControlFiles(dashboard, workflow, metrics);
-        return true;
+        await updateDashboard(dashboard, metrics);
+        const id = await this.workflowHelpers.createQualityTask('metric anomaly', { metrics });
+        return id;
       } catch (err) {
         if (i === 2) throw new QualityAnomalyError('Failed to record anomaly', err);
-        await new Promise((r) => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 100));
       }
     }
   }
