@@ -473,6 +473,7 @@ roo-advanced-framework/
 │   ├── 📄 delegationPatterns.md         # Successful delegation sequences
 │   ├── 📄 learningHistory.md            # Outcomes and optimizations
 │   ├── 📄 actionable-patterns.md        # Auto-applicable patterns
+│   ├── 📄 global-patterns.md          # Cross-project reusable patterns
 │   └── 📁 schemas/                       # JSON schemas for validation
 │       └── 📄 pattern-schema.json       # Pattern definition schema
 │
