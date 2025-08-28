@@ -366,6 +366,11 @@
         "usage_statistics": {
           "type": "object",
           "description": "Usage statistics for the pattern",
+          "required": [
+            "total_applications",
+            "successful_applications",
+            "failed_applications"
+          ],
           "properties": {
             "total_applications": {
               "type": "integer",
