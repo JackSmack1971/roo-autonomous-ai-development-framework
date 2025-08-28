@@ -6,6 +6,15 @@
  */
 
 const LearningProtocolClient = require('./learning-protocol-client');
+const fs = require('fs').promises;
+const path = require('path');
+
+class GlobalPatternLoadError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'GlobalPatternLoadError';
+  }
+}
 
 class LearningErrorHandler {
   constructor(options = {}) {
@@ -33,6 +42,17 @@ class LearningErrorHandler {
 
     this.initializeRecoveryStrategies();
     this.initializeFallbackModes();
+  }
+
+  async loadGlobalPatternsGuide() {
+    const guidePath = path.join(__dirname, '..', 'global-patterns.md');
+    try {
+      return await fs.readFile(guidePath, 'utf8');
+    } catch (error) {
+      throw new GlobalPatternLoadError(
+        `Failed to load global patterns: ${error.message}`
+      );
+    }
   }
 
   /**
@@ -380,11 +400,18 @@ class LearningErrorHandler {
       description: 'Manual reference to memory-bank files',
       execute: async (context, operation) => {
         console.log(`📚 [${this.modeName}] Using manual fallback - reference memory-bank files`);
+        let advice = `Learning system unavailable - proceeding with standard ${operation} workflow.`;
+        try {
+          await this.loadGlobalPatternsGuide();
+          advice += ' Refer to memory-bank/global-patterns.md for cross-project guidance.';
+        } catch (error) {
+          console.warn(error.message);
+        }
         return {
           available: false,
           guidance: {
             recommendations: [],
-            fallback_advice: `Learning system unavailable - proceeding with standard ${operation} workflow. Check memory-bank files for context.`
+            fallback_advice: advice
           },
           metadata: {
             fallback: true,

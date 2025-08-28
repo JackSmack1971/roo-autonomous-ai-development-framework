@@ -4,6 +4,8 @@
 
 The Actionable Pattern Storage System provides a comprehensive solution for storing, retrieving, and managing actionable patterns in the Roo autonomous learning framework. This system enables automatic task creation, quality gate enforcement, and workflow optimization based on learned patterns.
 
+For reusable guidance that spans multiple projects, refer to `../global-patterns.md` in the memory bank.
+
 ## Architecture
 
 ### Core Components
