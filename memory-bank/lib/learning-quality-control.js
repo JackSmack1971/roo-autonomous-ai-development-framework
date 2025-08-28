@@ -7,6 +7,7 @@
 
 const fs = require('fs/promises');
 const LearningProtocolClient = require('./learning-protocol-client');
+const { LearningApiError } = LearningProtocolClient;
 const LearningWorkflowHelpers = require('./learning-workflow-helpers');
 
 class QualityAnomalyError extends Error {
@@ -40,8 +41,14 @@ const updateDashboard = async (dashboard, metrics) => {
 
 class LearningQualityControl {
   constructor(options = {}) {
-    this.learningClient = new LearningProtocolClient(options);
-    this.workflowHelpers = new LearningWorkflowHelpers(options);
+    this.learningClient = new LearningProtocolClient({
+      timeoutMs: options.timeoutMs,
+      ...options
+    });
+    this.workflowHelpers = new LearningWorkflowHelpers({
+      timeoutMs: options.timeoutMs,
+      ...options
+    });
     this.modeName = options.modeName || 'unknown';
 
     this.qualityThresholds = {
@@ -226,7 +233,11 @@ class LearningQualityControl {
       return enhancedChecks;
 
     } catch (error) {
-      console.warn(`⚠️ [${this.modeName}] Learning-enhanced checks failed: ${error.message}`);
+      const msg = `⚠️ [${this.modeName}] Learning-enhanced checks failed: ${error.message}`;
+      console.warn(msg);
+      if (error instanceof LearningApiError) {
+        return [];
+      }
       return [];
     }
   }
@@ -331,7 +342,11 @@ class LearningQualityControl {
         }
       }
     } catch (error) {
-      console.warn(`⚠️ [${this.modeName}] Failed to generate learning recommendations: ${error.message}`);
+      const msg = `⚠️ [${this.modeName}] Failed to generate learning recommendations: ${error.message}`;
+      console.warn(msg);
+      if (error instanceof LearningApiError) {
+        // already logged by learning client
+      }
     }
 
     return recommendations;
@@ -364,7 +379,11 @@ class LearningQualityControl {
       );
 
     } catch (error) {
-      console.warn(`⚠️ [${this.modeName}] Failed to log quality metrics: ${error.message}`);
+      const msg = `⚠️ [${this.modeName}] Failed to log quality metrics: ${error.message}`;
+      console.warn(msg);
+      if (error instanceof LearningApiError) {
+        // ignore, learning system unavailable
+      }
     }
   }
 
@@ -418,7 +437,11 @@ class LearningQualityControl {
       );
 
     } catch (logError) {
-      console.warn(`⚠️ [${this.modeName}] Failed to log quality error: ${logError.message}`);
+      const msg = `⚠️ [${this.modeName}] Failed to log quality error: ${logError.message}`;
+      console.warn(msg);
+      if (logError instanceof LearningApiError) {
+        // ignore
+      }
     }
   }
 
