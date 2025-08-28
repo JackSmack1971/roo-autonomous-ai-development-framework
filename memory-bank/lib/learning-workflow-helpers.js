@@ -6,11 +6,20 @@
  */
 
 const LearningProtocolClient = require('./learning-protocol-client');
+const PatternStorage = require('./pattern-storage');
+
+class PatternStatsUpdateError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'PatternStatsUpdateError';
+  }
+}
 
 class LearningWorkflowHelpers {
   constructor(options = {}) {
     this.learningClient = new LearningProtocolClient(options);
     this.modeName = options.modeName || 'unknown';
+    this.patternStorage = new PatternStorage(options.patternStorageOptions || {});
   }
 
   /**
@@ -100,6 +109,12 @@ class LearningWorkflowHelpers {
       // Apply the learning pattern
       const applicationResult = await this.applyLearningPattern(learningCheck.guidance, context);
 
+      try {
+        await this.updatePatternOutcome(learningCheck.guidance, applicationResult.success);
+      } catch (error) {
+        console.warn(`⚠️ [${this.modeName}] ${error.message}`);
+      }
+
       // Log the application
       await this.postTaskLearningUpdate(
         taskType,
@@ -148,6 +163,24 @@ class LearningWorkflowHelpers {
         error: error.message,
         pattern_id: pattern.pattern_id
       };
+    }
+  }
+
+  /**
+   * Update pattern statistics after application
+   * @param {Object} pattern
+   * @param {boolean} success
+   */
+  async updatePatternOutcome(pattern, success) {
+    const id = pattern?.pattern_id || pattern?.id;
+    if (typeof id !== 'string' || typeof success !== 'boolean') return;
+    const base = typeof pattern.confidence_score === 'number' ? pattern.confidence_score : 0.5;
+    const delta = success ? 0.05 : -0.05;
+    const newConfidence = Math.min(0.95, Math.max(0.1, base + delta));
+    try {
+      await this.patternStorage.updatePatternStats(id, success, newConfidence);
+    } catch (error) {
+      throw new PatternStatsUpdateError(`Failed to update pattern stats: ${error.message}`);
     }
   }
 
