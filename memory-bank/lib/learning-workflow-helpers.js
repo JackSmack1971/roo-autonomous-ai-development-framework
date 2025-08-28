@@ -7,6 +7,7 @@
 
 const fs = require('fs/promises');
 const LearningProtocolClient = require('./learning-protocol-client');
+const { LearningApiError } = LearningProtocolClient;
 const PatternStorage = require('./pattern-storage');
 
 class PatternStatsUpdateError extends Error {
@@ -25,7 +26,10 @@ class TaskCreationError extends Error {
 
 class LearningWorkflowHelpers {
   constructor(options = {}) {
-    this.learningClient = new LearningProtocolClient(options);
+    this.learningClient = new LearningProtocolClient({
+      timeoutMs: options.timeoutMs,
+      ...options
+    });
     this.modeName = options.modeName || 'unknown';
     this.patternStorage = new PatternStorage(options.patternStorageOptions || {});
   }
@@ -72,12 +76,12 @@ class LearningWorkflowHelpers {
         };
       }
     } catch (error) {
-      console.warn(`⚠️ [${this.modeName}] Learning check failed: ${error.message}`);
-      return {
-        hasGuidance: false,
-        error: error.message,
-        fallback: true
-      };
+      const msg = `⚠️ [${this.modeName}] Learning check failed: ${error.message}`;
+      console.warn(msg);
+      if (error instanceof LearningApiError) {
+        return { hasGuidance: false, error: error.message, fallback: true };
+      }
+      return { hasGuidance: false, error: error.message, fallback: true };
     }
   }
 
@@ -100,7 +104,11 @@ class LearningWorkflowHelpers {
       return { success: true };
 
     } catch (error) {
-      console.warn(`⚠️ [${this.modeName}] Failed to log learning outcome: ${error.message}`);
+      const msg = `⚠️ [${this.modeName}] Failed to log learning outcome: ${error.message}`;
+      console.warn(msg);
+      if (error instanceof LearningApiError) {
+        return { success: false, error: error.message };
+      }
       return { success: false, error: error.message };
     }
   }

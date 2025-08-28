@@ -16,6 +16,14 @@ class LearningProtocolClientError extends Error {
   }
 }
 
+class LearningApiError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.name = 'LearningApiError';
+    this.cause = cause;
+  }
+}
+
 class LearningProtocolClient extends EventEmitter {
   constructor(options = {}) {
     super();
@@ -24,6 +32,7 @@ class LearningProtocolClient extends EventEmitter {
       learningSystemPath: options.learningSystemPath || path.join(__dirname, '..'),
       enableCaching: options.enableCaching !== false,
       timeoutMs: options.timeoutMs || 5000,
+      retries: options.retries || 3,
       confidenceThreshold: options.confidenceThreshold || 0.6,
       ...options
     };
@@ -37,6 +46,7 @@ class LearningProtocolClient extends EventEmitter {
     this.getLearningGuidance = this.getLearningGuidance.bind(this);
     this.logOutcome = this.logOutcome.bind(this);
     this.applyWithConfidence = this.applyWithConfidence.bind(this);
+    this.executeWithRetry = this.executeWithRetry.bind(this);
   }
 
   /**
@@ -81,9 +91,14 @@ class LearningProtocolClient extends EventEmitter {
    * Get learning guidance for current context
    */
   async getLearningGuidance(context = {}, taskType = 'general', options = {}) {
-    const cacheKey = this.generateCacheKey(context, taskType);
+    if (!context || typeof context !== 'object') {
+      throw new LearningProtocolClientError('Invalid context for guidance');
+    }
+    if (typeof taskType !== 'string') {
+      throw new LearningProtocolClientError('Invalid task type for guidance');
+    }
 
-    // Check cache first
+    const cacheKey = this.generateCacheKey(context, taskType);
     if (this.options.enableCaching && this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey);
       if (this.isCacheValid(cached.timestamp)) {
@@ -95,31 +110,43 @@ class LearningProtocolClient extends EventEmitter {
       return this.getFallbackGuidance(context, taskType);
     }
 
-    try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Learning system timeout')), this.options.timeoutMs)
-      );
+    const operation = () => this.queryLearningSystem(context, taskType, options);
+    const result = await this.executeWithRetry(operation, {
+      attempts: this.options.retries,
+      timeoutMs: this.options.timeoutMs
+    });
 
-      const learningPromise = this.queryLearningSystem(context, taskType, options);
-
-      const result = await Promise.race([learningPromise, timeoutPromise]);
-
-      // Cache the result
-      if (this.options.enableCaching) {
-        this.cache.set(cacheKey, {
-          data: result,
-          timestamp: Date.now()
-        });
-      }
-
-      return result;
-
-    } catch (error) {
-      console.warn(`Learning system error: ${error.message}`);
-      this.emit('learning_error', error);
-
-      return this.getFallbackGuidance(context, taskType);
+    if (this.options.enableCaching) {
+      this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
     }
+
+    return result;
+  }
+
+  /**
+   * Execute an async operation with retry and timeout
+   */
+  async executeWithRetry(operation, { attempts, timeoutMs }) {
+    if (typeof operation !== 'function') {
+      throw new LearningProtocolClientError('Invalid operation');
+    }
+    let lastError;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        return await Promise.race([
+          operation(),
+          new Promise((_, r) => setTimeout(() => r(new Error('timeout')), timeoutMs))
+        ]);
+      } catch (err) {
+        lastError = err;
+        if (i < attempts - 1) {
+          await new Promise(res => setTimeout(res, 2 ** i * 100));
+        }
+      }
+    }
+    const error = new LearningApiError('Operation failed after retries', lastError);
+    this.emit('learning_error', error);
+    throw error;
   }
 
   /**
@@ -204,33 +231,58 @@ class LearningProtocolClient extends EventEmitter {
    * @param {string} [details]
    */
   async logOutcome(mode, taskType, outcome, confidence, details = '') {
-    if (typeof mode !== 'string' || typeof taskType !== 'string')
+    const validOutcome = outcome === 'success' || outcome === 'failure';
+    const validConfidence = typeof confidence === 'number' && confidence >= 0 && confidence <= 1;
+    if (
+      typeof mode !== 'string' ||
+      typeof taskType !== 'string' ||
+      !validOutcome ||
+      !validConfidence
+    ) {
       throw new LearningProtocolClientError('Invalid parameters for logOutcome');
+    }
     if (!(await this.checkAvailability())) {
       await this.logToMemoryBank(mode, taskType, outcome, confidence, details);
       return;
     }
-    try {
+    const operation = async () => {
       const Storage = require(path.join(this.options.learningSystemPath, 'lib/pattern-storage'));
       const store = new Storage();
       const context = { mode, task_type: taskType };
       const patterns = await store.getRecommendedPatterns(context, 10);
-      let successTotal = 0, failureTotal = 0;
+      let successTotal = 0;
+      let failureTotal = 0;
       for (const pattern of patterns) {
         if (pattern.confidence_score > 0.5) {
           const success = outcome === 'success';
-          const newConf = success ? Math.min(confidence + 0.1, 0.95) : Math.max(confidence - 0.1, 0.1);
+          const newConf = success
+            ? Math.min(confidence + 0.1, 0.95)
+            : Math.max(confidence - 0.1, 0.1);
           const updated = await store.updatePatternStats(pattern.id, success, newConf);
           const stats = updated.metadata.usage_statistics || {};
           successTotal += stats.successful_applications || 0;
           failureTotal += stats.failed_applications || 0;
         }
       }
-      await this.logToDecisionLog(mode, taskType, outcome, confidence, details, successTotal, failureTotal);
+      await this.logToDecisionLog(
+        mode,
+        taskType,
+        outcome,
+        confidence,
+        details,
+        successTotal,
+        failureTotal
+      );
+    };
+
+    try {
+      await this.executeWithRetry(operation, {
+        attempts: this.options.retries,
+        timeoutMs: this.options.timeoutMs
+      });
     } catch (error) {
-      const wrapped = new LearningProtocolClientError(`Failed to log outcome to learning system: ${error.message}`, error);
-      console.warn(wrapped.message);
       await this.logToMemoryBank(mode, taskType, outcome, confidence, details);
+      throw error;
     }
   }
 
@@ -335,3 +387,6 @@ class LearningProtocolClient extends EventEmitter {
 }
 
 module.exports = LearningProtocolClient;
+module.exports.LearningApiError = LearningApiError;
+module.exports.LearningProtocolClientError = LearningProtocolClientError;
+
