@@ -8,6 +8,14 @@
 const EventEmitter = require('events');
 const path = require('path');
 
+class LearningProtocolClientError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.name = 'LearningProtocolClientError';
+    this.cause = cause;
+  }
+}
+
 class LearningProtocolClient extends EventEmitter {
   constructor(options = {}) {
     super();
@@ -119,44 +127,32 @@ class LearningProtocolClient extends EventEmitter {
    */
   async queryLearningSystem(context, taskType, options) {
     try {
-      const PatternMatcher = require(path.join(this.options.learningSystemPath, 'lib/pattern-matcher'));
-      const PatternStorage = require(path.join(this.options.learningSystemPath, 'lib/pattern-storage'));
-
-      const patternMatcher = new PatternMatcher();
-      const patternStorage = new PatternStorage();
-
-      // Prepare context for pattern matching
+      const Matcher = require(path.join(this.options.learningSystemPath, 'lib/pattern-matcher')),
+        Storage = require(path.join(this.options.learningSystemPath, 'lib/pattern-storage'));
+      const matcher = new Matcher(), storage = new Storage();
       const rawContext = {
         task_type: taskType,
         context_data: context,
         timestamp: new Date().toISOString(),
-        ...options.context || {}
+        ...(options.context || {})
       };
-
-      // Get pattern matches
-      const matchingResult = await patternMatcher.matchPatterns(rawContext);
-
-      // Get recommended patterns
-      const recommendedPatterns = await patternStorage.getRecommendedPatterns(rawContext, 5);
-
-      return {
-        available: true,
-        guidance: {
-          pattern_matches: matchingResult.pattern_matches?.matches || [],
-          recommendations: matchingResult.recommendations || [],
-          recommended_patterns: recommendedPatterns,
-          decision: matchingResult.decision,
-          confidence: matchingResult.decision?.confidence || 0
-        },
-        metadata: {
-          query_timestamp: new Date().toISOString(),
-          patterns_found: matchingResult.pattern_matches?.matches?.length || 0,
-          recommendations_count: matchingResult.recommendations?.length || 0
-        }
+      const matches = await matcher.matchPatterns(rawContext);
+      const recommended = await storage.getRecommendedPatterns(rawContext, 5);
+      const metadata = {
+        query_timestamp: new Date().toISOString(),
+        patterns_found: matches.pattern_matches?.matches?.length || 0,
+        recommendations_count: matches.recommendations?.length || 0
       };
-
+      const guidance = {
+        pattern_matches: matches.pattern_matches?.matches || [],
+        recommendations: matches.recommendations || [],
+        recommended_patterns: recommended,
+        decision: matches.decision,
+        confidence: matches.decision?.confidence || 0
+      };
+      return { available: true, guidance, metadata };
     } catch (error) {
-      throw new Error(`Failed to query learning system: ${error.message}`);
+      throw new LearningProtocolClientError(`Failed to query learning system: ${error.message}`, error);
     }
   }
 
@@ -200,35 +196,40 @@ class LearningProtocolClient extends EventEmitter {
   /**
    * Log outcome for learning system
    */
+  /**
+   * @param {string} mode
+   * @param {string} taskType
+   * @param {'success'|'failure'} outcome
+   * @param {number} confidence
+   * @param {string} [details]
+   */
   async logOutcome(mode, taskType, outcome, confidence, details = '') {
+    if (typeof mode !== 'string' || typeof taskType !== 'string')
+      throw new LearningProtocolClientError('Invalid parameters for logOutcome');
     if (!(await this.checkAvailability())) {
-      // Fallback: log to memory-bank manually
       await this.logToMemoryBank(mode, taskType, outcome, confidence, details);
       return;
     }
-
     try {
-      const PatternStorage = require(path.join(this.options.learningSystemPath, 'lib/pattern-storage'));
-      const patternStorage = new PatternStorage();
-
-      // Find relevant patterns and update their stats
+      const Storage = require(path.join(this.options.learningSystemPath, 'lib/pattern-storage'));
+      const store = new Storage();
       const context = { mode, task_type: taskType };
-      const relevantPatterns = await patternStorage.getRecommendedPatterns(context, 10);
-
-      for (const pattern of relevantPatterns) {
-        if (pattern.confidence_score > 0.5) { // Only update reasonably confident patterns
+      const patterns = await store.getRecommendedPatterns(context, 10);
+      let successTotal = 0, failureTotal = 0;
+      for (const pattern of patterns) {
+        if (pattern.confidence_score > 0.5) {
           const success = outcome === 'success';
-          const newConfidence = success ? Math.min(confidence + 0.1, 0.95) : Math.max(confidence - 0.1, 0.1);
-
-          await patternStorage.updatePatternStats(pattern.id, success, newConfidence);
+          const newConf = success ? Math.min(confidence + 0.1, 0.95) : Math.max(confidence - 0.1, 0.1);
+          const updated = await store.updatePatternStats(pattern.id, success, newConf);
+          const stats = updated.metadata.usage_statistics || {};
+          successTotal += stats.successful_applications || 0;
+          failureTotal += stats.failed_applications || 0;
         }
       }
-
-      // Log to decision log
-      await this.logToDecisionLog(mode, taskType, outcome, confidence, details);
-
+      await this.logToDecisionLog(mode, taskType, outcome, confidence, details, successTotal, failureTotal);
     } catch (error) {
-      console.warn(`Failed to log outcome to learning system: ${error.message}`);
+      const wrapped = new LearningProtocolClientError(`Failed to log outcome to learning system: ${error.message}`, error);
+      console.warn(wrapped.message);
       await this.logToMemoryBank(mode, taskType, outcome, confidence, details);
     }
   }
@@ -279,19 +280,18 @@ class LearningProtocolClient extends EventEmitter {
   /**
    * Log to decision log
    */
-  async logToDecisionLog(mode, taskType, outcome, confidence, details) {
+  async logToDecisionLog(mode, taskType, outcome, confidence, details, successful, failed) {
     try {
       const fs = require('fs').promises;
       const decisionLogPath = path.join(this.options.learningSystemPath, '..', 'decisionLog.md');
-
       const entry = `\n## ${new Date().toISOString()} - ${mode} Learning Outcome\n\n` +
         `**Task Type:** ${taskType}\n` +
         `**Outcome:** ${outcome}\n` +
         `**Confidence:** ${confidence}\n` +
-        `**Details:** ${details}\n\n`;
-
+        `**Details:** ${details}\n` +
+        `**Successful Applications:** ${successful}\n` +
+        `**Failed Applications:** ${failed}\n\n`;
       await fs.appendFile(decisionLogPath, entry);
-
     } catch (error) {
       console.warn(`Failed to log to decision log: ${error.message}`);
     }

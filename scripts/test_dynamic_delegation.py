@@ -90,7 +90,7 @@ class DelegationTester:
         if not os.path.exists(self.workflow_file):
             print_status(f"Workflow state file exists at {self.workflow_file}", success=False)
             return False
-        print_status(f"Workflow state file found", success=True)
+        print_status("Workflow state file found", success=True)
         return True
 
     def _backup_workflow_state(self):

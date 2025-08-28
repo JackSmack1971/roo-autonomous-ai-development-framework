@@ -12,6 +12,8 @@
 **Decision Confidence**: [0.0-1.0]
 **Complexity Score**: [0.0-1.0]
 **Business Impact**: [Low|Medium|High|Critical]
+**Successful Applications**: [integer]
+**Failed Applications**: [integer]
 
 ---
 
@@ -35,6 +37,8 @@
 - **Learning**: Always validate auth patterns for components handling user data
 - **Confidence**: High (similar pattern successful in reference implementations)
 - **Follow-up**: Monitor security architect task completion and integration
+- **Successful Applications**: 3
+- **Failed Applications**: 0
 
 ### 2025-08-25T11:45:00Z - Performance Optimization Required  
 - **Decision Maker**: sparc-code-implementer
@@ -55,6 +59,8 @@
 - **Learning**: Early performance validation prevents late-stage optimization scrambling
 - **Confidence**: High (performance optimization is well-understood domain)
 - **Follow-up**: Performance monitoring alerts configured for similar patterns
+- **Successful Applications**: 5
+- **Failed Applications**: 1
 
 ---
 
