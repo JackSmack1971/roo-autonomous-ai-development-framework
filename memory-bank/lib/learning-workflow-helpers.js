@@ -107,7 +107,7 @@ class LearningWorkflowHelpers {
 
   /**
    * Create a quality follow-up task with retry and timeout safeguards
-   * Stored in workflow state's `active_tasks` per workflow_state_v2 schema
+   * Writes to workflow state's `active_tasks` (workflow_state_v2 schema)
    * @param {string} warning
    * @param {object} context
    * @returns {Promise<string>} task identifier
@@ -126,7 +126,7 @@ class LearningWorkflowHelpers {
       created_by: this.modeName,
       created_at: new Date().toISOString(),
       priority: 'high',
-      context,
+      context
     };
     const attempt = async () => {
       const data = JSON.parse(await fs.readFile(file, 'utf8').catch(() => '{}'));
@@ -136,10 +136,7 @@ class LearningWorkflowHelpers {
     };
     for (let i = 0; i < 3; i++) {
       try {
-        return await Promise.race([
-          attempt(),
-          new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 2000)),
-        ]);
+        return await Promise.race([attempt(), new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 2000))]);
       } catch (err) {
         if (i === 2) throw new TaskCreationError(`Failed to create quality task: ${err.message}`);
         await new Promise(r => setTimeout(r, 100));

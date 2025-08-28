@@ -1,5 +1,5 @@
 {
-  "schema": "QUALITY_DASHBOARD/V1",
+  "schema": "QUALITY_DASHBOARD/V2",
   "project_id": "sample-app",
   "updated_at": "2025-08-25T00:00:00Z",
   "overall_quality_score": null,
@@ -93,9 +93,5 @@
     }
   },
 
-  "predictive_quality_indicators": {
-    "quality_risks": [],
-    "improvement_opportunities": [],
-    "maintenance_needs": []
-  }
+  "predictive_quality_indicators": []
 }
