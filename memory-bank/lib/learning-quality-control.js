@@ -22,6 +22,18 @@ class QualityAnomalyError extends Error {
   }
 }
 
+class QualityGateError extends Error {
+  /**
+   * @param {string} message
+   * @param {Error} [cause]
+   */
+  constructor(message, cause) {
+    super(message);
+    this.name = 'QualityGateError';
+    this.cause = cause;
+  }
+}
+
 const withTimeout = (p, ms = 2000) =>
   Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
 
@@ -63,64 +75,78 @@ class LearningQualityControl {
   }
 
   /**
-   * Comprehensive quality gate with learning integration
+   * Prepare quality check object and validate inputs
    */
-  async runQualityGate(artifact, gateType = 'general', context = {}) {
-    console.log(`🔍 [${this.modeName}] Running comprehensive quality gate: ${gateType}`);
-
-    const qualityCheck = {
+  async prepareQualityCheck(artifact, gateType, context) {
+    if (!artifact) throw new QualityGateError('artifact required');
+    if (typeof gateType !== 'string') throw new QualityGateError('gateType must be string');
+    return {
       gate_type: gateType,
       timestamp: new Date().toISOString(),
       artifact_info: this.analyzeArtifact(artifact),
-      context: context,
+      context,
       checks: [],
       overall_score: 0,
       passed: false,
       learning_enhanced: false,
       recommendations: []
     };
+  }
 
+  /**
+   * Execute standard and learning-enhanced quality checks
+   */
+  async executeQualityChecks(artifact, gateType, context, qualityCheck) {
+    const standardChecks = await this.runStandardQualityChecks(artifact, gateType);
+    qualityCheck.checks.push(...standardChecks);
+    const learningChecks = await this.runLearningEnhancedChecks(artifact, gateType, context);
+    qualityCheck.checks.push(...learningChecks);
+    qualityCheck.learning_enhanced = learningChecks.length > 0;
+    qualityCheck.overall_score = this.calculateOverallScore(qualityCheck.checks);
+    qualityCheck.recommendations = await this.generateQualityRecommendations(
+      qualityCheck.checks,
+      gateType,
+      context
+    );
+    qualityCheck.passed = this.determineGatePass(qualityCheck.overall_score, gateType);
+  }
+
+  /**
+   * Finalize quality check by logging metrics
+   */
+  async finalizeQualityCheck(qualityCheck) {
+    await this.logQualityMetrics(qualityCheck);
+    console.log(
+      `✅ [${this.modeName}] Quality gate ${qualityCheck.passed ? 'PASSED' : 'FAILED'} with score: ${(qualityCheck.overall_score * 100).toFixed(1)}%`
+    );
+    return qualityCheck;
+  }
+
+  /**
+   * Comprehensive quality gate with learning integration
+   */
+  async runQualityGate(artifact, gateType = 'general', context = {}) {
+    console.log(`🔍 [${this.modeName}] Running comprehensive quality gate: ${gateType}`);
     try {
-      // Step 1: Run standard quality checks
-      const standardChecks = await this.runStandardQualityChecks(artifact, gateType);
-      qualityCheck.checks.push(...standardChecks);
-
-      // Step 2: Run learning-enhanced checks if available
-      const learningChecks = await this.runLearningEnhancedChecks(artifact, gateType, context);
-      qualityCheck.checks.push(...learningChecks);
-      qualityCheck.learning_enhanced = learningChecks.length > 0;
-
-      // Step 3: Calculate overall score
-      qualityCheck.overall_score = this.calculateOverallScore(qualityCheck.checks);
-
-      // Step 4: Generate recommendations
-      qualityCheck.recommendations = await this.generateQualityRecommendations(
-        qualityCheck.checks,
-        gateType,
-        context
-      );
-
-      // Step 5: Determine pass/fail
-      qualityCheck.passed = this.determineGatePass(qualityCheck.overall_score, gateType);
-
-      // Step 6: Log quality metrics for learning
-      await this.logQualityMetrics(qualityCheck);
-
-      console.log(`✅ [${this.modeName}] Quality gate ${qualityCheck.passed ? 'PASSED' : 'FAILED'} with score: ${(qualityCheck.overall_score * 100).toFixed(1)}%`);
-
-      return qualityCheck;
-
-    } catch (error) {
+      const qc = await this.prepareQualityCheck(artifact, gateType, context);
+      await this.executeQualityChecks(artifact, gateType, context, qc);
+      return await this.finalizeQualityCheck(qc);
+    } catch (err) {
+      const error = err instanceof QualityGateError ? err : new QualityGateError(err.message, err);
       console.error(`❌ [${this.modeName}] Quality gate failed: ${error.message}`);
-
-      // Log error for learning
       await this.logQualityError(error, gateType, context);
-
       return {
-        ...qualityCheck,
+        gate_type: gateType,
+        timestamp: new Date().toISOString(),
+        artifact_info: this.analyzeArtifact(artifact),
+        context,
+        checks: [],
+        overall_score: 0,
         passed: false,
+        learning_enhanced: false,
+        recommendations: [],
         error: error.message,
-        error_type: 'quality_gate_failure'
+        error_type: error.name
       };
     }
   }
