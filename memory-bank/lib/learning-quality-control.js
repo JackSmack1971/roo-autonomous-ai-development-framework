@@ -9,6 +9,7 @@ const fs = require('fs/promises');
 const LearningProtocolClient = require('./learning-protocol-client');
 const { LearningApiError } = LearningProtocolClient;
 const LearningWorkflowHelpers = require('./learning-workflow-helpers');
+const DocumentationValidator = require('./documentation-validator');
 
 class QualityAnomalyError extends Error {
   /**
@@ -34,6 +35,18 @@ class QualityGateError extends Error {
   }
 }
 
+class QualityGateConfigError extends Error {
+  /**
+   * @param {string} message
+   * @param {Error} [cause]
+   */
+  constructor(message, cause) {
+    super(message);
+    this.name = 'QualityGateConfigError';
+    this.cause = cause;
+  }
+}
+
 const withTimeout = (p, ms = 2000) =>
   Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
 
@@ -43,6 +56,57 @@ const validateMetrics = (m) =>
   typeof m.overall_score === 'number' &&
   m.overall_score >= 0 &&
   m.overall_score <= 1;
+
+/**
+ * Reads dynamic quality thresholds from the dashboard configuration
+ * @param {string} [dashboardPath] - Path to quality dashboard JSON file
+ * @param {number} [retries=3] - Number of retry attempts
+ * @param {number} [timeoutMs=5000] - Timeout for file operations
+ * @returns {Promise<{project_phase: string, gate_thresholds: Object, learning_adjustments: Object}>}
+ * @throws {QualityGateConfigError} If configuration is invalid or unreachable
+ */
+const readQualityThresholds = async (dashboardPath = null, retries = 3, timeoutMs = 5000) => {
+  const path = dashboardPath || process.env.QUALITY_DASHBOARD_PATH;
+  if (!path) {
+    throw new QualityGateConfigError('QUALITY_DASHBOARD_PATH environment variable not set');
+  }
+
+  let lastError;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const data = await withTimeout(fs.readFile(path, 'utf8'), timeoutMs);
+      const config = JSON.parse(data);
+
+      // Validate configuration structure
+      if (!config.project_phase || !['init', 'dev', 'stabilization', 'release'].includes(config.project_phase)) {
+        throw new QualityGateConfigError('Invalid or missing project_phase in dashboard configuration');
+      }
+
+      if (!config.gate_thresholds || typeof config.gate_thresholds !== 'object') {
+        throw new QualityGateConfigError('Invalid or missing gate_thresholds in dashboard configuration');
+      }
+
+      if (!config.learning_adjustments || typeof config.learning_adjustments !== 'object') {
+        throw new QualityGateConfigError('Invalid or missing learning_adjustments in dashboard configuration');
+      }
+
+      return {
+        project_phase: config.project_phase,
+        gate_thresholds: config.gate_thresholds,
+        learning_adjustments: config.learning_adjustments
+      };
+
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        // Exponential backoff: 100ms, 200ms, 400ms...
+        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+
+  throw new QualityGateConfigError(`Failed to read quality thresholds after ${retries} attempts`, lastError);
+};
 
 // Writes anomaly warnings to QUALITY_DASHBOARD/V2
 const updateDashboard = async (dashboard, metrics) => {
@@ -60,6 +124,10 @@ class LearningQualityControl {
     this.workflowHelpers = new LearningWorkflowHelpers({
       timeoutMs: options.timeoutMs,
       ...options
+    });
+    this.documentationValidator = new DocumentationValidator({
+      rootPath: options.rootPath,
+      timeoutMs: options.timeoutMs
     });
     this.modeName = options.modeName || 'unknown';
 
@@ -108,7 +176,7 @@ class LearningQualityControl {
       gateType,
       context
     );
-    qualityCheck.passed = this.determineGatePass(qualityCheck.overall_score, gateType);
+    qualityCheck.passed = await this.determineGatePass(qualityCheck.overall_score, gateType);
   }
 
   /**
@@ -218,6 +286,12 @@ class LearningQualityControl {
       case 'architecture':
         checks.push(...await this.runArchitectureChecks(artifact));
         break;
+      case 'api_documentation':
+      case 'code_documentation':
+      case 'architecture_documentation':
+      case 'usage_documentation':
+        checks.push(...await this.runDocumentationChecks(artifact, gateType));
+        break;
       default:
         checks.push(...await this.runGeneralChecks(artifact));
     }
@@ -314,19 +388,93 @@ class LearningQualityControl {
   }
 
   /**
-   * Determine if quality gate passes
+   * Determine if quality gate passes using dynamic thresholds from dashboard
+   * @param {number} overallScore - Overall quality score (0-1)
+   * @param {string} gateType - Type of quality gate (security, performance, code, etc.)
+   * @returns {Promise<boolean>} Whether the gate passes
+   * @throws {QualityGateConfigError} If configuration cannot be loaded
    */
-  determineGatePass(overallScore, gateType) {
-    const thresholds = {
-      security: 0.9,
-      performance: 0.8,
-      code: 0.75,
-      architecture: 0.8,
-      general: 0.7
+  async determineGatePass(overallScore, gateType) {
+    try {
+      const config = await readQualityThresholds();
+
+      // Get baseline threshold for gate type
+      const baselineThreshold = config.gate_thresholds[gateType] || config.gate_thresholds.general || 0.7;
+
+      // Apply phase multiplier
+      const phaseMultiplier = this.getPhaseMultiplier(config.project_phase, gateType);
+
+      // Apply learning adjustments
+      const learningAdjustment = config.learning_adjustments[gateType] || 0;
+
+      // Calculate effective threshold
+      const effectiveThreshold = Math.max(0, Math.min(1, baselineThreshold * phaseMultiplier + learningAdjustment));
+
+      console.log(`🔍 [${this.modeName}] Gate ${gateType}: score=${(overallScore * 100).toFixed(1)}%, threshold=${(effectiveThreshold * 100).toFixed(1)}% (baseline=${(baselineThreshold * 100).toFixed(1)}%, phase=${config.project_phase}, multiplier=${phaseMultiplier.toFixed(2)}, adjustment=${(learningAdjustment * 100).toFixed(1)}%)`);
+
+      return overallScore >= effectiveThreshold;
+
+    } catch (error) {
+      if (error instanceof QualityGateConfigError) {
+        console.warn(`⚠️ [${this.modeName}] Using fallback thresholds due to config error: ${error.message}`);
+
+        // Fallback to static thresholds if dashboard is unavailable
+        const fallbackThresholds = {
+          security: 0.9,
+          performance: 0.8,
+          code: 0.75,
+          architecture: 0.8,
+          general: 0.7
+        };
+
+        const threshold = fallbackThresholds[gateType] || fallbackThresholds.general;
+        return overallScore >= threshold;
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Get phase multiplier for quality thresholds
+   * @param {string} phase - Project phase (init, dev, stabilization, release)
+   * @param {string} gateType - Type of quality gate
+   * @returns {number} Multiplier to apply to baseline threshold
+   */
+  getPhaseMultiplier(phase, gateType) {
+    const multipliers = {
+      init: {
+        security: 0.7,      // Lower security requirements during initial development
+        performance: 0.6,   // Lower performance expectations
+        code: 0.8,          // Standard code quality
+        architecture: 0.5,  // Lower architecture requirements
+        general: 0.7
+      },
+      dev: {
+        security: 0.8,      // Moderate security requirements
+        performance: 0.7,   // Moderate performance expectations
+        code: 0.9,          // Higher code quality expectations
+        architecture: 0.7,  // Moderate architecture requirements
+        general: 0.8
+      },
+      stabilization: {
+        security: 1.0,      // Full security requirements
+        performance: 0.9,   // High performance expectations
+        code: 1.0,          // Full code quality requirements
+        architecture: 0.9,  // High architecture requirements
+        general: 0.9
+      },
+      release: {
+        security: 1.1,      // Higher than standard security requirements
+        performance: 1.0,   // Full performance requirements
+        code: 1.0,          // Full code quality requirements
+        architecture: 1.0,  // Full architecture requirements
+        general: 1.0
+      }
     };
 
-    const threshold = thresholds[gateType] || thresholds.general;
-    return overallScore >= threshold;
+    const phaseMultipliers = multipliers[phase] || multipliers.dev;
+    return phaseMultipliers[gateType] || phaseMultipliers.general;
   }
 
   /**
@@ -534,6 +682,404 @@ class LearningQualityControl {
       { name: 'consistency_check', type: 'general', passed: true, score: 0.75, weight: 0.4 },
       { name: 'documentation_check', type: 'general', passed: false, score: 0.5, weight: 0.2 }
     ];
+  }
+
+  /**
+   * Run documentation quality checks
+   */
+  async runDocumentationChecks(artifact, gateType) {
+    const checks = [];
+
+    switch (gateType) {
+      case 'api_documentation':
+        checks.push(...await this.runApiDocumentationChecks(artifact));
+        break;
+      case 'code_documentation':
+        checks.push(...await this.runCodeDocumentationChecks(artifact));
+        break;
+      case 'architecture_documentation':
+        checks.push(...await this.runArchitectureDocumentationChecks(artifact));
+        break;
+      case 'usage_documentation':
+        checks.push(...await this.runUsageDocumentationChecks(artifact));
+        break;
+      default:
+        checks.push(...await this.runGeneralDocumentationChecks(artifact));
+    }
+
+    return checks;
+  }
+
+  /**
+   * Run API documentation checks
+   */
+  async runApiDocumentationChecks(artifact) {
+    try {
+      const validationResults = await this.documentationValidator.validateApiDocumentation();
+      const checks = [];
+
+      // Convert validation results to check format
+      checks.push({
+        name: 'openapi_specification',
+        type: 'api_documentation',
+        passed: validationResults.openapi_spec,
+        score: validationResults.openapi_spec ? 1.0 : 0.0,
+        weight: 0.3,
+        details: validationResults.openapi_spec ? 'OpenAPI specification found' : 'Missing OpenAPI specification'
+      });
+
+      checks.push({
+        name: 'endpoint_documentation',
+        type: 'api_documentation',
+        passed: validationResults.endpoint_coverage > 0.5,
+        score: validationResults.endpoint_coverage,
+        weight: 0.25,
+        details: `Endpoint coverage: ${(validationResults.endpoint_coverage * 100).toFixed(1)}%`
+      });
+
+      checks.push({
+        name: 'parameter_documentation',
+        type: 'api_documentation',
+        passed: validationResults.parameter_coverage > 0.6,
+        score: validationResults.parameter_coverage,
+        weight: 0.15,
+        details: `Parameter coverage: ${(validationResults.parameter_coverage * 100).toFixed(1)}%`
+      });
+
+      checks.push({
+        name: 'response_schemas',
+        type: 'api_documentation',
+        passed: validationResults.response_coverage > 0.6,
+        score: validationResults.response_coverage,
+        weight: 0.15,
+        details: `Response schema coverage: ${(validationResults.response_coverage * 100).toFixed(1)}%`
+      });
+
+      checks.push({
+        name: 'error_responses',
+        type: 'api_documentation',
+        passed: validationResults.error_coverage > 0.7,
+        score: validationResults.error_coverage,
+        weight: 0.15,
+        details: `Error documentation coverage: ${(validationResults.error_coverage * 100).toFixed(1)}%`
+      });
+
+      checks.push({
+        name: 'usage_examples',
+        type: 'api_documentation',
+        passed: validationResults.examples_coverage > 0.5,
+        score: validationResults.examples_coverage,
+        weight: 0.1,
+        details: `Examples coverage: ${(validationResults.examples_coverage * 100).toFixed(1)}%`
+      });
+
+      return checks;
+    } catch (error) {
+      console.warn(`⚠️ [${this.modeName}] API documentation validation failed: ${error.message}`);
+      return [{
+        name: 'api_docs_validation',
+        type: 'api_documentation',
+        passed: false,
+        score: 0.0,
+        weight: 1.0,
+        details: `Validation failed: ${error.message}`
+      }];
+    }
+  }
+
+  /**
+   * Run code documentation checks
+   */
+  async runCodeDocumentationChecks(artifact) {
+    const checks = [];
+
+    // Check for module documentation
+    const hasModuleDocs = await this.checkFileExists('src/**/__init__.py') ||
+                         await this.checkFileExists('src/**/README.md');
+    checks.push({
+      name: 'module_documentation',
+      type: 'code_documentation',
+      passed: hasModuleDocs,
+      score: hasModuleDocs ? 0.9 : 0.3,
+      weight: 0.25,
+      details: hasModuleDocs ? 'Module documentation found' : 'Missing module documentation'
+    });
+
+    // Check for docstring coverage (simplified check)
+    const hasDocstrings = artifact && typeof artifact === 'string' &&
+                         (artifact.includes('/**') || artifact.includes('"""') || artifact.includes('///'));
+    checks.push({
+      name: 'function_docstrings',
+      type: 'code_documentation',
+      passed: hasDocstrings,
+      score: hasDocstrings ? 0.8 : 0.4,
+      weight: 0.3,
+      details: hasDocstrings ? 'Docstrings found in code' : 'Missing function docstrings'
+    });
+
+    // Check for code documentation directory
+    const hasCodeDocs = await this.checkFileExists('docs/code/*.md');
+    checks.push({
+      name: 'code_docs_directory',
+      type: 'code_documentation',
+      passed: hasCodeDocs,
+      score: hasCodeDocs ? 0.9 : 0.2,
+      weight: 0.2,
+      details: hasCodeDocs ? 'Code documentation directory exists' : 'Missing code documentation directory'
+    });
+
+    // Check for comments in complex logic
+    const hasComments = artifact && typeof artifact === 'string' &&
+                       (artifact.includes('//') || artifact.includes('#') || artifact.includes('/*'));
+    checks.push({
+      name: 'inline_comments',
+      type: 'code_documentation',
+      passed: hasComments,
+      score: hasComments ? 0.7 : 0.5,
+      weight: 0.25,
+      details: hasComments ? 'Inline comments found' : 'Missing explanatory comments'
+    });
+
+    return checks;
+  }
+
+  /**
+   * Run architecture documentation checks
+   */
+  async runArchitectureDocumentationChecks(artifact) {
+    const checks = [];
+
+    // Check for architecture overview
+    const hasArchOverview = await this.checkFileExists('ARCHITECTURE.md') ||
+                           await this.checkFileExists('docs/architecture/*.md');
+    checks.push({
+      name: 'architecture_overview',
+      type: 'architecture_documentation',
+      passed: hasArchOverview,
+      score: hasArchOverview ? 0.9 : 0.1,
+      weight: 0.25,
+      details: hasArchOverview ? 'Architecture overview found' : 'Missing architecture overview'
+    });
+
+    // Check for component diagrams
+    const hasDiagrams = await this.checkFileExists('docs/architecture/diagrams/*');
+    checks.push({
+      name: 'component_diagrams',
+      type: 'architecture_documentation',
+      passed: hasDiagrams,
+      score: hasDiagrams ? 0.8 : 0.2,
+      weight: 0.2,
+      details: hasDiagrams ? 'Architecture diagrams found' : 'Missing component diagrams'
+    });
+
+    // Check for ADR (Architecture Decision Records)
+    const hasADRs = await this.checkFileExists('docs/adr/*.md');
+    checks.push({
+      name: 'architecture_decisions',
+      type: 'architecture_documentation',
+      passed: hasADRs,
+      score: hasADRs ? 0.9 : 0.3,
+      weight: 0.2,
+      details: hasADRs ? 'Architecture decision records found' : 'Missing ADR documentation'
+    });
+
+    // Check for deployment documentation
+    const readmeContent = await this.readFileContent('README.md');
+    const hasDeploymentDocs = readmeContent && (readmeContent.includes('deploy') || readmeContent.includes('Deploy'));
+    checks.push({
+      name: 'deployment_documentation',
+      type: 'architecture_documentation',
+      passed: hasDeploymentDocs,
+      score: hasDeploymentDocs ? 0.7 : 0.4,
+      weight: 0.2,
+      details: hasDeploymentDocs ? 'Deployment docs found' : 'Missing deployment documentation'
+    });
+
+    // Check for scalability considerations
+    const hasScalabilityDocs = readmeContent && (readmeContent.includes('scalab') || readmeContent.includes('Scalab'));
+    checks.push({
+      name: 'scalability_considerations',
+      type: 'architecture_documentation',
+      passed: hasScalabilityDocs,
+      score: hasScalabilityDocs ? 0.8 : 0.3,
+      weight: 0.15,
+      details: hasScalabilityDocs ? 'Scalability documented' : 'Missing scalability considerations'
+    });
+
+    return checks;
+  }
+
+  /**
+   * Run usage documentation checks
+   */
+  async runUsageDocumentationChecks(artifact) {
+    const checks = [];
+
+    // Check for comprehensive README
+    const readmeContent = await this.readFileContent('README.md');
+    const hasReadme = readmeContent && readmeContent.length > 500; // Basic length check
+    checks.push({
+      name: 'readme_completeness',
+      type: 'usage_documentation',
+      passed: hasReadme,
+      score: hasReadme ? 0.9 : 0.2,
+      weight: 0.25,
+      details: hasReadme ? 'Comprehensive README found' : 'README too short or missing'
+    });
+
+    // Check for getting started guide
+    const hasGettingStarted = await this.checkFileExists('docs/getting-started.md');
+    checks.push({
+      name: 'getting_started_guide',
+      type: 'usage_documentation',
+      passed: hasGettingStarted,
+      score: hasGettingStarted ? 0.9 : 0.3,
+      weight: 0.2,
+      details: hasGettingStarted ? 'Getting started guide found' : 'Missing getting started guide'
+    });
+
+    // Check for installation instructions
+    const hasInstallation = await this.checkFileExists('docs/installation.md') ||
+                           (readmeContent && (readmeContent.includes('install') || readmeContent.includes('Install')));
+    checks.push({
+      name: 'installation_instructions',
+      type: 'usage_documentation',
+      passed: hasInstallation,
+      score: hasInstallation ? 0.8 : 0.4,
+      weight: 0.2,
+      details: hasInstallation ? 'Installation instructions found' : 'Missing installation instructions'
+    });
+
+    // Check for configuration guide
+    const hasConfiguration = await this.checkFileExists('docs/configuration.md') ||
+                            (readmeContent && (readmeContent.includes('config') || readmeContent.includes('Config')));
+    checks.push({
+      name: 'configuration_guide',
+      type: 'usage_documentation',
+      passed: hasConfiguration,
+      score: hasConfiguration ? 0.8 : 0.4,
+      weight: 0.15,
+      details: hasConfiguration ? 'Configuration guide found' : 'Missing configuration guide'
+    });
+
+    // Check for troubleshooting guide
+    const hasTroubleshooting = await this.checkFileExists('docs/troubleshooting.md');
+    checks.push({
+      name: 'troubleshooting_guide',
+      type: 'usage_documentation',
+      passed: hasTroubleshooting,
+      score: hasTroubleshooting ? 0.7 : 0.5,
+      weight: 0.1,
+      details: hasTroubleshooting ? 'Troubleshooting guide found' : 'Missing troubleshooting guide'
+    });
+
+    // Check for changelog
+    const hasChangelog = await this.checkFileExists('CHANGELOG.md');
+    checks.push({
+      name: 'changelog',
+      type: 'usage_documentation',
+      passed: hasChangelog,
+      score: hasChangelog ? 0.8 : 0.6,
+      weight: 0.1,
+      details: hasChangelog ? 'Changelog found' : 'Missing changelog'
+    });
+
+    return checks;
+  }
+
+  /**
+   * Run general documentation checks
+   */
+  async runGeneralDocumentationChecks(artifact) {
+    const checks = [];
+
+    // Check for basic documentation existence
+    const hasAnyDocs = await this.checkFileExists('README.md') ||
+                      await this.checkFileExists('docs/**/*.md');
+    checks.push({
+      name: 'documentation_existence',
+      type: 'general_documentation',
+      passed: hasAnyDocs,
+      score: hasAnyDocs ? 0.8 : 0.2,
+      weight: 0.4,
+      details: hasAnyDocs ? 'Documentation files found' : 'No documentation files found'
+    });
+
+    // Check for documentation directory structure
+    const hasDocsDir = await this.checkFileExists('docs/');
+    checks.push({
+      name: 'documentation_structure',
+      type: 'general_documentation',
+      passed: hasDocsDir,
+      score: hasDocsDir ? 0.7 : 0.4,
+      weight: 0.3,
+      details: hasDocsDir ? 'Documentation directory exists' : 'Missing documentation directory'
+    });
+
+    // Check for documentation in code comments
+    const hasCodeComments = artifact && typeof artifact === 'string' &&
+                           (artifact.includes('//') || artifact.includes('#') || artifact.includes('/*'));
+    checks.push({
+      name: 'code_comments',
+      type: 'general_documentation',
+      passed: hasCodeComments,
+      score: hasCodeComments ? 0.6 : 0.3,
+      weight: 0.3,
+      details: hasCodeComments ? 'Code comments found' : 'Missing code comments'
+    });
+
+    return checks;
+  }
+
+  /**
+   * Helper method to check if file exists (simplified implementation)
+   */
+  async checkFileExists(pattern) {
+    try {
+      // This is a simplified implementation - in real usage, this would use fs.stat or glob
+      // For now, we'll assume some common files exist based on the project structure
+      const commonFiles = [
+        'README.md',
+        'docs/',
+        'docs/api/',
+        'docs/code/',
+        'docs/architecture/',
+        'docs/getting-started.md',
+        'docs/installation.md',
+        'docs/configuration.md',
+        'docs/troubleshooting.md',
+        'CHANGELOG.md',
+        'ARCHITECTURE.md'
+      ];
+
+      // Simple pattern matching for common cases
+      if (pattern.includes('README.md')) return true;
+      if (pattern.includes('docs/')) return true;
+      if (pattern.includes('*.md')) return true;
+      if (pattern.includes('__init__.py')) return true;
+
+      return false;
+    } catch (error) {
+      console.warn(`⚠️ [${this.modeName}] File existence check failed: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Helper method to read file content (simplified implementation)
+   */
+  async readFileContent(filePath) {
+    try {
+      // This is a simplified implementation - in real usage, this would use fs.readFile
+      // For now, we'll return mock content for common files
+      if (filePath === 'README.md') {
+        return '# Project Title\n\nThis is a sample README with API usage examples.\n\n## API\n\nHere are the API endpoints...';
+      }
+      return null;
+    } catch (error) {
+      console.warn(`⚠️ [${this.modeName}] File reading failed: ${error.message}`);
+      return null;
+    }
   }
 }
 

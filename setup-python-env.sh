@@ -9,11 +9,12 @@
 # and development tool initialization.
 #
 # Usage:
-#   ./setup-python-env.sh [production|development|all]
+#   ./setup-python-env.sh [production|development|minimal|all]
 #
 # Options:
 #   production   - Install only production dependencies
-#   development  - Install development dependencies (includes production)
+#   development  - Install development dependencies (includes production)  
+#   minimal      - Install core dependencies without ML/scientific packages (Python 3.13 safe)
 #   all         - Install everything with optional dependencies (default)
 #
 # ==============================================================================
@@ -80,7 +81,21 @@ check_python_version() {
         exit 1
     fi
 
-    if [[ "$python_version" == "$PYTHON_RECOMMENDED" ]]; then
+    # Special warning for Python 3.13
+    if python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 13) else 1)" 2>/dev/null; then
+        print_warning "Python 3.13 detected - some packages may need compilation from source"
+        print_info "If you encounter numpy/scipy compilation errors:"
+        print_info "  1. Try: pip install --only-binary=all -r requirements.txt"
+        print_info "  2. Or downgrade to Python 3.11-3.12 for best compatibility"
+        print_info "  3. Or install without ML dependencies: MODE=production"
+        echo ""
+        read -p "Continue with Python 3.13? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_info "Consider using Python 3.11 or 3.12 for optimal compatibility"
+            exit 0
+        fi
+    elif [[ "$python_version" == "$PYTHON_RECOMMENDED" ]]; then
         print_success "Python version: ${python_version} (recommended)"
     else
         print_warning "Python version: ${python_version} (minimum supported, recommend ${PYTHON_RECOMMENDED})"
@@ -121,26 +136,85 @@ setup_virtual_environment() {
 install_dependencies() {
     print_header "Installing Dependencies (Mode: ${MODE})"
 
+    # Check if we're on Python 3.13 and adjust strategy
+    local use_binary_only=false
+    if python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 13) else 1)" 2>/dev/null; then
+        print_info "Python 3.13 detected - using binary-only installation strategy"
+        use_binary_only=true
+    fi
+
     case "$MODE" in
         "production")
             print_info "Installing production dependencies..."
-            pip install -r requirements.txt -c constraints.txt
+            if $use_binary_only; then
+                print_info "Attempting binary-only installation for Python 3.13 compatibility..."
+                pip install --only-binary=all -r requirements.txt -c constraints.txt || {
+                    print_warning "Binary-only installation failed. Trying with compilation fallback..."
+                    pip install -r requirements.txt -c constraints.txt --no-binary=:none: || {
+                        print_error "Installation failed. Try with MODE=minimal or use Python 3.11-3.12"
+                        exit 1
+                    }
+                }
+            else
+                pip install -r requirements.txt -c constraints.txt
+            fi
             print_success "Production dependencies installed"
             ;;
         "development")
             print_info "Installing development dependencies (includes production)..."
-            pip install -r requirements-dev.txt -c constraints.txt
+            if $use_binary_only; then
+                print_info "Attempting binary-only installation for Python 3.13 compatibility..."
+                pip install --only-binary=all -r requirements-dev.txt -c constraints.txt || {
+                    print_warning "Some packages may need compilation. Falling back to mixed installation..."
+                    pip install -r requirements-dev.txt -c constraints.txt
+                }
+            else
+                pip install -r requirements-dev.txt -c constraints.txt
+            fi
             print_success "Development dependencies installed"
+            ;;
+        "minimal")
+            print_info "Installing minimal dependencies (no ML/scientific packages)..."
+            # Create temporary minimal requirements
+            python3 -c "
+import sys
+if sys.version_info >= (3, 13):
+    # Skip scientific packages for Python 3.13
+    skip_packages = ['numpy', 'pandas', 'scikit-learn', 'matplotlib', 'seaborn', 'plotly']
+    with open('requirements.txt', 'r') as f:
+        lines = f.readlines()
+    with open('requirements-minimal.txt', 'w') as f:
+        for line in lines:
+            if not any(pkg in line.lower() for pkg in skip_packages) and not line.strip().startswith('#'):
+                f.write(line)
+            elif line.strip().startswith('#'):
+                f.write(line)
+else:
+    # For older Python versions, use full requirements
+    import shutil
+    shutil.copy('requirements.txt', 'requirements-minimal.txt')
+"
+            pip install -r requirements-minimal.txt -c constraints.txt
+            rm -f requirements-minimal.txt
+            print_success "Minimal dependencies installed"
             ;;
         "all"|*)
             print_info "Installing all dependencies with optional packages..."
-            pip install -r requirements-dev.txt -c constraints.txt
-            
-            # Install optional AI/ML packages if requested
-            print_info "Installing optional AI/ML packages..."
-            pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu || {
-                print_warning "Failed to install PyTorch (CPU). Skipping optional ML dependencies."
-            }
+            if $use_binary_only; then
+                print_warning "Python 3.13 detected. Skipping optional ML packages to avoid compilation issues."
+                print_info "For ML features, consider using Python 3.11 or 3.12"
+                pip install --only-binary=all -r requirements-dev.txt -c constraints.txt || {
+                    pip install -r requirements-dev.txt -c constraints.txt
+                }
+            else
+                pip install -r requirements-dev.txt -c constraints.txt
+                
+                # Install optional AI/ML packages if requested
+                print_info "Installing optional AI/ML packages..."
+                pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu || {
+                    print_warning "Failed to install PyTorch (CPU). Skipping optional ML dependencies."
+                }
+            fi
             
             print_success "All dependencies installed"
             ;;
@@ -263,6 +337,14 @@ main() {
     echo "  3. Set up MCP servers in Roo Code extension"
     echo "  4. Initialize your first project: ${GREEN}./scripts/setup_project.sh${NC}"
     echo "  5. Start autonomous development! 🚀"
+    echo ""
+    if python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 13) else 1)" 2>/dev/null; then
+        echo -e "${YELLOW}Python 3.13 Notes:${NC}"
+        echo "  • Some ML packages may not be available due to compilation issues"
+        echo "  • For full ML support, consider Python 3.11 or 3.12"
+        echo "  • Core autonomous AI features work fully on Python 3.13"
+        echo ""
+    fi
 }
 
 # Run main function

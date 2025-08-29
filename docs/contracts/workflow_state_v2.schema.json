@@ -211,6 +211,29 @@
           "enum": ["improving", "stable", "declining", "initializing"]
         },
         "active_quality_interventions": {"type": "integer"},
+        "project_phase": {
+          "type": "string",
+          "enum": ["init", "dev", "stabilization", "release"],
+          "description": "Current project development phase"
+        },
+        "gate_thresholds": {
+          "type": "object",
+          "description": "Baseline quality thresholds for different gate types",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "learning_adjustments": {
+          "type": "object",
+          "description": "Dynamic adjustments to thresholds based on learning",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": -1,
+            "maximum": 1
+          }
+        },
         "quality_gates_status": {
           "type": "object",
           "additionalProperties": {

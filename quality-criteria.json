@@ -1,0 +1,315 @@
+{
+  "schema": "QUALITY_CRITERIA/V1",
+  "description": "Mandatory documentation quality criteria for autonomous development framework",
+  "version": "1.0.0",
+  "last_updated": "2025-08-29T01:25:00Z",
+
+  "documentation_gates": {
+    "api_documentation": {
+      "name": "API Documentation Validation",
+      "description": "Ensures all APIs have comprehensive documentation",
+      "required_for": ["integration", "deployment"],
+      "automatic_check": true,
+      "severity": "high",
+      "criteria": [
+        {
+          "name": "endpoint_documentation",
+          "description": "All API endpoints must be documented",
+          "validation": "endpoint_coverage >= 0.95",
+          "weight": 0.3
+        },
+        {
+          "name": "parameter_documentation",
+          "description": "All parameters must have type and description",
+          "validation": "parameter_coverage >= 0.98",
+          "weight": 0.2
+        },
+        {
+          "name": "response_schema",
+          "description": "Response schemas must be documented",
+          "validation": "response_schema_coverage >= 0.9",
+          "weight": 0.2
+        },
+        {
+          "name": "error_responses",
+          "description": "Error responses must be documented",
+          "validation": "error_documentation_coverage >= 0.95",
+          "weight": 0.15
+        },
+        {
+          "name": "examples_provided",
+          "description": "Usage examples must be provided",
+          "validation": "example_coverage >= 0.8",
+          "weight": 0.15
+        }
+      ],
+      "required_files": [
+        "docs/api/*.md",
+        "docs/api/openapi.yaml",
+        "README.md#api-usage"
+      ]
+    },
+
+    "code_documentation": {
+      "name": "Code Documentation Validation",
+      "description": "Ensures code has appropriate documentation",
+      "required_for": ["quality", "architecture"],
+      "automatic_check": true,
+      "severity": "medium",
+      "criteria": [
+        {
+          "name": "function_documentation",
+          "description": "All public functions must have docstrings",
+          "validation": "public_function_docstring_coverage >= 0.9",
+          "weight": 0.25
+        },
+        {
+          "name": "class_documentation",
+          "description": "All classes must have documentation",
+          "validation": "class_documentation_coverage >= 0.95",
+          "weight": 0.2
+        },
+        {
+          "name": "complex_logic_comments",
+          "description": "Complex logic must have explanatory comments",
+          "validation": "complex_logic_comment_density >= 0.7",
+          "weight": 0.2
+        },
+        {
+          "name": "module_documentation",
+          "description": "All modules must have module-level documentation",
+          "validation": "module_docstring_coverage >= 0.85",
+          "weight": 0.15
+        },
+        {
+          "name": "inline_comments",
+          "description": "Appropriate inline comments for clarity",
+          "validation": "inline_comment_density >= 0.3",
+          "weight": 0.2
+        }
+      ],
+      "required_files": [
+        "docs/code/*.md",
+        "src/**/__init__.py",
+        "src/**/README.md"
+      ]
+    },
+
+    "architecture_documentation": {
+      "name": "Architecture Documentation Validation",
+      "description": "Ensures system architecture is properly documented",
+      "required_for": ["architecture", "deployment"],
+      "automatic_check": false,
+      "severity": "high",
+      "reviewer": "architect",
+      "criteria": [
+        {
+          "name": "system_overview",
+          "description": "High-level system architecture overview",
+          "validation": "system_overview_exists",
+          "weight": 0.2
+        },
+        {
+          "name": "component_diagrams",
+          "description": "Component interaction diagrams",
+          "validation": "component_diagram_exists",
+          "weight": 0.2
+        },
+        {
+          "name": "data_flow_diagrams",
+          "description": "Data flow and processing diagrams",
+          "validation": "data_flow_diagram_exists",
+          "weight": 0.15
+        },
+        {
+          "name": "deployment_diagrams",
+          "description": "Deployment and infrastructure diagrams",
+          "validation": "deployment_diagram_exists",
+          "weight": 0.15
+        },
+        {
+          "name": "architecture_decisions",
+          "description": "Documented architecture decision records",
+          "validation": "adr_coverage >= 0.8",
+          "weight": 0.15
+        },
+        {
+          "name": "scalability_considerations",
+          "description": "Scalability and performance considerations",
+          "validation": "scalability_documented",
+          "weight": 0.15
+        }
+      ],
+      "required_files": [
+        "docs/architecture/*.md",
+        "docs/architecture/diagrams/*",
+        "docs/adr/*.md",
+        "ARCHITECTURE.md"
+      ]
+    },
+
+    "usage_documentation": {
+      "name": "Usage Documentation Validation",
+      "description": "Ensures users can effectively use the system",
+      "required_for": ["deployment", "integration"],
+      "automatic_check": true,
+      "severity": "medium",
+      "criteria": [
+        {
+          "name": "getting_started_guide",
+          "description": "Comprehensive getting started guide",
+          "validation": "getting_started_guide_exists",
+          "weight": 0.25
+        },
+        {
+          "name": "installation_instructions",
+          "description": "Clear installation and setup instructions",
+          "validation": "installation_guide_exists",
+          "weight": 0.2
+        },
+        {
+          "name": "configuration_guide",
+          "description": "Configuration options and examples",
+          "validation": "configuration_guide_exists",
+          "weight": 0.2
+        },
+        {
+          "name": "troubleshooting_guide",
+          "description": "Common issues and solutions",
+          "validation": "troubleshooting_guide_exists",
+          "weight": 0.15
+        },
+        {
+          "name": "faq_section",
+          "description": "Frequently asked questions",
+          "validation": "faq_exists",
+          "weight": 0.1
+        },
+        {
+          "name": "changelog",
+          "description": "Version history and changes",
+          "validation": "changelog_exists",
+          "weight": 0.1
+        }
+      ],
+      "required_files": [
+        "README.md",
+        "docs/getting-started.md",
+        "docs/installation.md",
+        "docs/configuration.md",
+        "docs/troubleshooting.md",
+        "CHANGELOG.md"
+      ]
+    },
+
+    "testing_documentation": {
+      "name": "Testing Documentation Validation",
+      "description": "Ensures testing approach is documented",
+      "required_for": ["quality"],
+      "automatic_check": true,
+      "severity": "medium",
+      "criteria": [
+        {
+          "name": "test_strategy",
+          "description": "Overall testing strategy documented",
+          "validation": "test_strategy_exists",
+          "weight": 0.25
+        },
+        {
+          "name": "test_setup_instructions",
+          "description": "How to set up and run tests",
+          "validation": "test_setup_guide_exists",
+          "weight": 0.2
+        },
+        {
+          "name": "test_coverage_requirements",
+          "description": "Test coverage requirements documented",
+          "validation": "coverage_requirements_defined",
+          "weight": 0.2
+        },
+        {
+          "name": "test_data_documentation",
+          "description": "Test data and fixtures documented",
+          "validation": "test_data_documented",
+          "weight": 0.15
+        },
+        {
+          "name": "ci_cd_testing",
+          "description": "CI/CD testing pipeline documented",
+          "validation": "ci_testing_documented",
+          "weight": 0.2
+        }
+      ],
+      "required_files": [
+        "docs/testing/*.md",
+        "tests/README.md",
+        "CONTRIBUTING.md#testing"
+      ]
+    }
+  },
+
+  "validation_rules": {
+    "file_existence_check": {
+      "description": "Check if required documentation files exist",
+      "type": "existence",
+      "severity": "high"
+    },
+    "content_validation": {
+      "description": "Validate documentation content quality",
+      "type": "content",
+      "severity": "medium",
+      "min_word_count": 50,
+      "required_sections": ["overview", "usage", "examples"]
+    },
+    "link_validation": {
+      "description": "Validate all links in documentation are working",
+      "type": "links",
+      "severity": "medium"
+    },
+    "format_validation": {
+      "description": "Validate documentation format and structure",
+      "type": "format",
+      "severity": "low",
+      "allowed_formats": ["md", "txt", "yaml", "json"]
+    }
+  },
+
+  "thresholds": {
+    "overall_documentation_score": 0.85,
+    "critical_documentation_coverage": 0.95,
+    "automatic_gate_pass_threshold": 0.8,
+    "manual_review_threshold": 0.7
+  },
+
+  "exclusions": {
+    "files": [
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/__pycache__/**",
+      "**/*.pyc",
+      "**/*.log",
+      "**/test-results/**",
+      "**/screenshots/**"
+    ],
+    "directories": [
+      ".git",
+      "node_modules",
+      "dist",
+      "build",
+      "__pycache__",
+      "test-results",
+      "screenshots",
+      "videos"
+    ]
+  },
+
+  "generation_rules": {
+    "auto_generate_api_docs": true,
+    "auto_generate_code_docs": true,
+    "template_based_generation": true,
+    "update_on_code_changes": true,
+    "validate_before_commit": true
+  }
+}

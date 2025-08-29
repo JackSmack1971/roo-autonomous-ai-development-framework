@@ -7,10 +7,27 @@
 #
 # This file pins transitive dependencies that can cause conflicts in
 # complex AI development environments with multiple async libraries.
+#
+# PYTHON 3.13 COMPATIBILITY: Special constraints for newest Python version
 # ==============================================================================
 
+# CRITICAL: Python 3.13 Compatibility Matrix
+# Many packages don't have pre-built wheels for Python 3.13 yet
+# These constraints ensure we get compatible versions
+
 # Core Constraint - Python Version Compatibility
-# Ensures all packages work with Python 3.8+
+# Python 3.8-3.12: Standard versions, Python 3.13: Latest with limited support
+
+# Scientific Stack - Python 3.13 Specific Constraints
+numpy>=1.26.0,<2.0.0; python_version>="3.13"           # First version with Python 3.13 support
+scipy>=1.11.4,<2.0.0; python_version>="3.13"           # Scientific computing
+matplotlib>=3.8.2,<4.0.0; python_version>="3.13"       # Plotting (avoid if not needed)
+
+# Fallback for Python 3.13: Use pure Python alternatives where possible
+# If scientific packages fail, consider these lightweight alternatives:
+# - Use built-in statistics module instead of numpy for basic math
+# - Use json/csv modules instead of pandas for data processing
+# - Use requests/httpx for HTTP instead of scientific HTTP libraries
 
 # HTTP/Network Library Compatibility
 urllib3>=1.26.0,<3.0.0           # Used by requests, httpx

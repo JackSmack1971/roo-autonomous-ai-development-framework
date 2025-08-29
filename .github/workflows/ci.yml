@@ -1,0 +1,309 @@
+name: Quality Gates CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  QUALITY_DASHBOARD_PATH: project/project/sample-app/control/quality-dashboard.json
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  # Documentation Quality Gate
+  documentation-gate:
+    name: Documentation Quality Gate
+    runs-on: ubuntu-latest
+    outputs:
+      docs_score: ${{ steps.docs-validation.outputs.score }}
+      docs_passed: ${{ steps.docs-validation.outputs.passed }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        cd project
+        npm install
+        pip install -r requirements.txt
+
+    - name: Run Documentation Validation
+      id: docs-validation
+      run: |
+        cd project
+        node -e "
+        const { DocumentationValidator } = require('./memory-bank/lib/documentation-validator.js');
+        const validator = new DocumentationValidator();
+
+        async function validate() {
+          try {
+            const results = await validator.validateAllDocumentation();
+            const overallScore = results.overall_score;
+            const passed = overallScore >= 0.85; // 85% threshold
+
+            console.log('📊 Documentation Quality Score:', (overallScore * 100).toFixed(1) + '%');
+            console.log('✅ Documentation Gate:', passed ? 'PASSED' : 'FAILED');
+
+            if (!passed) {
+              console.log('❌ Issues found:');
+              results.critical_issues.forEach(issue => console.log('  -', issue));
+            }
+
+            // Write results to GitHub output
+            console.log('::set-output name=score::' + overallScore);
+            console.log('::set-output name=passed::' + passed);
+
+            if (!passed) {
+              process.exit(1);
+            }
+          } catch (error) {
+            console.error('Documentation validation failed:', error.message);
+            process.exit(1);
+          }
+        }
+        validate();
+        "
+
+  # Code Quality Gate
+  code-quality-gate:
+    name: Code Quality Gate
+    runs-on: ubuntu-latest
+    needs: documentation-gate
+    if: needs.documentation-gate.outputs.docs_passed == 'true'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        cd project
+        npm install
+        pip install -r requirements.txt -r requirements-dev.txt
+
+    - name: Run ESLint
+      run: |
+        cd project
+        npx eslint src/ memory-bank/lib/ --ext .js,.ts || true
+
+    - name: Run Python linting
+      run: |
+        cd project
+        python -m pylint src/ tests/ || true
+
+    - name: Run tests
+      run: |
+        cd project
+        npm test
+        python -m pytest tests/ -v
+
+    - name: Generate test coverage
+      run: |
+        cd project
+        npm run coverage || python -m pytest tests/ --cov=src/ --cov-report=xml
+
+  # Security Quality Gate
+  security-gate:
+    name: Security Quality Gate
+    runs-on: ubuntu-latest
+    needs: code-quality-gate
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Run npm audit
+      run: |
+        cd project
+        npm audit --audit-level high || true
+
+    - name: Run security scan
+      uses: github/super-linter/slim@v5
+      env:
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_ALL_CODEBASE: false
+        VALIDATE_JAVASCRIPT_ES: true
+        VALIDATE_PYTHON: true
+        VALIDATE_JSON: true
+        VALIDATE_YAML: true
+
+  # Architecture Quality Gate
+  architecture-gate:
+    name: Architecture Quality Gate
+    runs-on: ubuntu-latest
+    needs: security-gate
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Validate Architecture Documentation
+      run: |
+        cd project
+
+        # Check for required architecture files
+        required_files=(
+          "ARCHITECTURE.md"
+          "README.md"
+        )
+
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Missing required architecture file: $file"
+            exit 1
+          fi
+        done
+
+        echo "✅ All required architecture files present"
+
+  # Deployment Readiness Gate
+  deployment-gate:
+    name: Deployment Readiness Gate
+    runs-on: ubuntu-latest
+    needs: [architecture-gate, documentation-gate]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Validate Deployment Configuration
+      run: |
+        cd project
+
+        # Check for deployment-related files
+        deployment_files=(
+          "package.json"
+          "pyproject.toml"
+          "requirements.txt"
+        )
+
+        for file in "${deployment_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Missing deployment configuration: $file"
+            exit 1
+          fi
+        done
+
+        echo "✅ Deployment configuration validated"
+
+    - name: Create deployment artifact
+      run: |
+        cd project
+        tar -czf deployment-${{ github.sha }}.tar.gz .
+
+    - name: Upload deployment artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-package
+        path: project/deployment-${{ github.sha }}.tar.gz
+
+  # Quality Report Generation
+  quality-report:
+    name: Generate Quality Report
+    runs-on: ubuntu-latest
+    needs: [documentation-gate, code-quality-gate, security-gate, architecture-gate]
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Generate Quality Summary
+      run: |
+        cd project
+
+        echo "# Quality Gates Report" > quality-report.md
+        echo "" >> quality-report.md
+        echo "Generated: $(date)" >> quality-report.md
+        echo "Commit: ${{ github.sha }}" >> quality-report.md
+        echo "Branch: ${{ github.ref }}" >> quality-report.md
+        echo "" >> quality-report.md
+
+        # Documentation Gate Results
+        echo "## Documentation Quality" >> quality-report.md
+        echo "- Score: ${{ needs.documentation-gate.outputs.docs_score }}" >> quality-report.md
+        echo "- Status: ${{ needs.documentation-gate.outputs.docs_passed == 'true' && '✅ PASSED' || '❌ FAILED' }}" >> quality-report.md
+        echo "" >> quality-report.md
+
+        # Code Quality Results
+        echo "## Code Quality" >> quality-report.md
+        echo "- Status: ${{ needs.code-quality-gate.result == 'success' && '✅ PASSED' || '❌ FAILED' }}" >> quality-report.md
+        echo "" >> quality-report.md
+
+        # Security Results
+        echo "## Security Quality" >> quality-report.md
+        echo "- Status: ${{ needs.security-gate.result == 'success' && '✅ PASSED' || '❌ FAILED' }}" >> quality-report.md
+        echo "" >> quality-report.md
+
+        # Architecture Results
+        echo "## Architecture Quality" >> quality-report.md
+        echo "- Status: ${{ needs.architecture-gate.result == 'success' && '✅ PASSED' || '❌ FAILED' }}" >> quality-report.md
+        echo "" >> quality-report.md
+
+        # Overall Status
+        docs_passed=${{ needs.documentation-gate.outputs.docs_passed == 'true' }}
+        code_passed=${{ needs.code-quality-gate.result == 'success' }}
+        security_passed=${{ needs.security-gate.result == 'success' }}
+        arch_passed=${{ needs.architecture-gate.result == 'success' }}
+
+        if [ "$docs_passed" = "true" ] && [ "$code_passed" = "true" ] && [ "$security_passed" = "true" ] && [ "$arch_passed" = "true" ]; then
+          echo "## Overall Status: ✅ ALL GATES PASSED" >> quality-report.md
+        else
+          echo "## Overall Status: ❌ SOME GATES FAILED" >> quality-report.md
+        fi
+
+        cat quality-report.md
+
+    - name: Upload Quality Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: quality-report
+        path: project/quality-report.md
+
+    - name: Comment PR with Quality Report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('project/quality-report.md', 'utf8');
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '## Quality Gates Report\n\n' + report
+          });

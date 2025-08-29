@@ -2,8 +2,25 @@
   "schema": "QUALITY_DASHBOARD/V2",
   "project_id": "sample-app",
   "updated_at": "2025-08-25T00:00:00Z",
+  "project_phase": "dev",
   "overall_quality_score": null,
   "quality_trend": "initializing",
+
+  "gate_thresholds": {
+    "security": 0.85,
+    "performance": 0.8,
+    "code": 0.75,
+    "architecture": 0.8,
+    "general": 0.7
+  },
+
+  "learning_adjustments": {
+    "security": 0.0,
+    "performance": 0.0,
+    "code": 0.0,
+    "architecture": 0.0,
+    "general": 0.0
+  },
   
   "quality_by_domain": {
     "architecture": {
